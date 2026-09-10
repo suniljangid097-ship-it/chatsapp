@@ -11,23 +11,26 @@
         #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .message { background: white; padding: 10px 15px; border-radius: 8px; max-width: 60%; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .message .username { font-weight: bold; color: #075e54; font-size: 13px; margin-bottom: 3px; display: block; }
-        #form { display: flex; background: #f0f0f0; padding: 10px; }
+        #form { display: flex; background: #f0f0f0; padding: 10px; gap: 5px; }
         #input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 16px; }
-        #send-btn { background: #075e54; color: white; border: none; padding: 10px 20px; margin-left: 10px; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        #send-btn:disabled { background: #ccc; cursor: not-allowed; }
-        #send-btn:hover:not(:disabled) { background: #128c7e; }
+        .btn { background: #075e54; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { background: #128c7e; }
+        #record-btn.recording { background: #d9534f; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <header>Chatsapp</header>
-    <div id="status">Connecting to server (please wait a few seconds)...</div>
+    <div id="status">Connecting to server...</div>
 
     <div id="chat-window"></div>
 
     <form id="form">
         <input id="input" autocomplete="off" placeholder="Type a message..." required disabled />
-        <button id="send-btn" disabled>Send</button>
+        <button type="submit" class="btn" id="send-btn" disabled>Send</button>
+        <button type="button" class="btn" id="record-btn" disabled>🎤 Record Voice</button>
     </form>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -38,6 +41,7 @@
         const form = document.getElementById('form');
         const input = document.getElementById('input');
         const sendBtn = document.getElementById('send-btn');
+        const recordBtn = document.getElementById('record-btn');
         const chatWindow = document.getElementById('chat-window');
 
         let username = prompt("Apna naam darj karein (Enter your name):");
@@ -45,21 +49,17 @@
             username = "Guest_" + Math.floor(Math.random() * 1000);
         }
 
-        // Jab server se connection successful ho jaye
         socket.on('connect', () => {
-            statusDiv.style.display = 'none'; // Status hata do
+            statusDiv.style.display = 'none';
             input.disabled = false;
             sendBtn.disabled = false;
+            recordBtn.disabled = false;
         });
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             if (input.value && socket.connected) {
-                const messageData = {
-                    name: username,
-                    text: input.value
-                };
-                socket.emit('chat message', messageData);
+                socket.emit('chat message', { name: username, text: input.value });
                 input.value = '';
             }
         });
@@ -67,15 +67,60 @@
         socket.on('chat message', function(data) {
             const item = document.createElement('div');
             item.classList.add('message');
+            item.innerHTML = `<span class="username">${data.name}</span>${data.text}`;
+            chatWindow.appendChild(item);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = () => {
+                            socket.emit('voice message', { name: username, audio: reader.result });
+                        };
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.textContent = "⏹️ Stop";
+                    recordBtn.classList.add('recording');
+                } catch (err) {
+                    alert("Microphone access denied or not supported!");
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.textContent = "🎤 Record Voice";
+                recordBtn.classList.remove('recording');
+            }
+        });
+
+        socket.on('voice message', function(data) {
+            const item = document.createElement('div');
+            item.classList.add('message');
             
-            const userSpan = document.createElement('span');
-            userSpan.classList.add('username');
-            userSpan.textContent = data.name;
+            const audioElement = document.createElement('audio');
+            audioElement.controls = true;
+            audioElement.src = data.audio;
 
-            const textNode = document.createTextNode(data.text);
-
-            item.appendChild(userSpan);
-            item.appendChild(textNode);
+            item.innerHTML = `<span class="username">${data.name} (Voice Note)</span>`;
+            item.appendChild(audioElement);
             chatWindow.appendChild(item);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         });
