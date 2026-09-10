@@ -7,43 +7,54 @@
     <style>
         body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
         header { background: #075e54; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
+        #status { background: #fffae6; color: #8a6d3b; padding: 5px; text-align: center; font-size: 12px; border-bottom: 1px solid #f2dede; }
         #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .message { background: white; padding: 10px 15px; border-radius: 8px; max-width: 60%; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .message .username { font-weight: bold; color: #075e54; font-size: 13px; margin-bottom: 3px; display: block; }
         #form { display: flex; background: #f0f0f0; padding: 10px; }
         #input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 16px; }
         #send-btn { background: #075e54; color: white; border: none; padding: 10px 20px; margin-left: 10px; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        #send-btn:hover { background: #128c7e; }
+        #send-btn:disabled { background: #ccc; cursor: not-allowed; }
+        #send-btn:hover:not(:disabled) { background: #128c7e; }
     </style>
 </head>
 <body>
 
     <header>Chatsapp</header>
+    <div id="status">Connecting to server (please wait a few seconds)...</div>
 
     <div id="chat-window"></div>
 
     <form id="form">
-        <input id="input" autocomplete="off" placeholder="Type a message..." required />
-        <button id="send-btn">Send</button>
+        <input id="input" autocomplete="off" placeholder="Type a message..." required disabled />
+        <button id="send-btn" disabled>Send</button>
     </form>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
 
-        // Jaise hi page khulega, naam pucha jayega
+        const statusDiv = document.getElementById('status');
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatWindow = document.getElementById('chat-window');
+
         let username = prompt("Apna naam darj karein (Enter your name):");
         if (!username || username.trim() === "") {
             username = "Guest_" + Math.floor(Math.random() * 1000);
         }
 
-        const form = document.getElementById('form');
-        const input = document.getElementById('input');
-        const chatWindow = document.getElementById('chat-window');
+        // Jab server se connection successful ho jaye
+        socket.on('connect', () => {
+            statusDiv.style.display = 'none'; // Status hata do
+            input.disabled = false;
+            sendBtn.disabled = false;
+        });
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            if (input.value) {
+            if (input.value && socket.connected) {
                 const messageData = {
                     name: username,
                     text: input.value
