@@ -11,9 +11,10 @@
         #chat-window { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .message { background: white; padding: 10px 15px; border-radius: 8px; max-width: 60%; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .message .username { font-weight: bold; color: #075e54; font-size: 13px; margin-bottom: 3px; display: block; }
-        #form { display: flex; background: #f0f0f0; padding: 10px; gap: 5px; }
+        .message img { max-width: 200px; border-radius: 8px; display: block; margin-top: 5px; }
+        #form { display: flex; background: #f0f0f0; padding: 10px; gap: 5px; align-items: center; }
         #input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 16px; }
-        .btn { background: #075e54; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn { background: #075e54; color: white; border: none; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; white-space: nowrap; }
         .btn:disabled { background: #ccc; cursor: not-allowed; }
         .btn:hover:not(:disabled) { background: #128c7e; }
         #record-btn.recording { background: #d9534f; animation: pulse 1.5s infinite; }
@@ -29,8 +30,10 @@
 
     <form id="form">
         <input id="input" autocomplete="off" placeholder="Type a message..." required disabled />
+        <input type="file" id="image-input" accept="image/*" style="display: none;" />
+        <button type="button" class="btn" id="img-btn" disabled>📷 Photo</button>
+        <button type="button" class="btn" id="record-btn" disabled>🎤 Voice</button>
         <button type="submit" class="btn" id="send-btn" disabled>Send</button>
-        <button type="button" class="btn" id="record-btn" disabled>🎤 Record Voice</button>
     </form>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -42,6 +45,8 @@
         const input = document.getElementById('input');
         const sendBtn = document.getElementById('send-btn');
         const recordBtn = document.getElementById('record-btn');
+        const imgBtn = document.getElementById('img-btn');
+        const imageInput = document.getElementById('image-input');
         const chatWindow = document.getElementById('chat-window');
 
         let username = prompt("Apna naam darj karein (Enter your name):");
@@ -54,8 +59,10 @@
             input.disabled = false;
             sendBtn.disabled = false;
             recordBtn.disabled = false;
+            imgBtn.disabled = false;
         });
 
+        // 1. Text Message Logic
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             if (input.value && socket.connected) {
@@ -72,6 +79,29 @@
             chatWindow.scrollTop = chatWindow.scrollHeight;
         });
 
+        // 2. Image Sharing Logic
+        imgBtn.addEventListener('click', () => imageInput.click());
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onloadend = () => {
+                    socket.emit('image message', { name: username, image: reader.result });
+                };
+            }
+        });
+
+        socket.on('image message', function(data) {
+            const item = document.createElement('div');
+            item.classList.add('message');
+            item.innerHTML = `<span class="username">${data.name} (Photo)</span><img src="${data.image}">`;
+            chatWindow.appendChild(item);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+
+        // 3. Voice Recording Logic
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
@@ -106,7 +136,7 @@
             } else {
                 mediaRecorder.stop();
                 isRecording = false;
-                recordBtn.textContent = "🎤 Record Voice";
+                recordBtn.textContent = "🎤 Voice";
                 recordBtn.classList.remove('recording');
             }
         });
