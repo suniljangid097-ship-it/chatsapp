@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatsapp - Sukuna Domain</title>
+    <title>Chatsapp</title>
     <style>
-        /* Sukuna Aesthetic Anime Background */
+        /* Clean Solid Dark Theme */
         body { 
             font-family: Arial, sans-serif; 
             margin: 0; 
@@ -14,42 +14,27 @@
             flex-direction: column; 
             height: 100vh; 
             overflow: hidden;
-            background: linear-gradient(135deg, #1a0925, #0b141a);
-            background-image: url('https://image.pollinations.ai/prompt/Ryomen%20Sukuna%20sitting%20surrounded%20by%20blossom%20petals%20neon%20city%20water%20reflection%20anime%20wallpaper%20dark%20purple%20pink');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background: #0b141a;
             color: #e1e8ed;
         }
 
-        /* Dark overlay for perfect glassmorphism & readability */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(10, 5, 20, 0.65);
-            z-index: -1;
-        }
-
         header { 
-            background: rgba(15, 10, 30, 0.85); 
-            backdrop-filter: blur(8px);
-            color: #ff5577; 
+            background: #1f2c34; 
+            color: #00a884; 
             padding: 15px; 
             text-align: center; 
             font-size: 20px; 
             font-weight: bold; 
-            border-bottom: 1px solid rgba(255, 85, 119, 0.3);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
 
         #status { 
-            background: rgba(255, 250, 230, 0.85); 
-            color: #8a6d3b; 
+            background: #182229; 
+            color: #ffcc00; 
             padding: 5px; 
             text-align: center; 
             font-size: 12px; 
-            border-bottom: 1px solid #f2dede; 
+            border-bottom: 1px solid #222d34; 
         }
 
         #chat-window { 
@@ -61,88 +46,83 @@
             gap: 12px; 
         }
         
-        /* Glassmorphism Message Bubbles with RGB Glow */
+        /* Message Bubbles with RGB Glow */
         .message { 
             padding: 10px 15px; 
-            border-radius: 12px; 
+            border-radius: 10px; 
             max-width: 60%; 
             word-wrap: break-word; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4); 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3); 
             position: relative;
-            backdrop-filter: blur(10px);
             animation: rgbGlow 6s infinite alternate;
         }
 
         .message.sent { 
             margin-left: auto; 
-            background: rgba(30, 60, 50, 0.85); 
-            color: #fff;
+            background: #005c4b; 
+            color: #e9edef;
             border-top-right-radius: 0; 
-            border: 1px solid rgba(0, 255, 150, 0.3);
         }
 
         .message.received { 
             margin-right: auto; 
-            background: rgba(40, 30, 55, 0.85); 
-            color: #fff;
+            background: #202c33; 
+            color: #e9edef;
             border-top-left-radius: 0; 
-            border: 1px solid rgba(255, 100, 150, 0.3);
         }
 
-        .message .username { font-weight: bold; color: #ff7799; font-size: 12px; margin-bottom: 3px; display: block; }
+        .message .username { font-weight: bold; color: #00a884; font-size: 12px; margin-bottom: 3px; display: block; }
         .message img { max-width: 200px; border-radius: 8px; display: block; margin-top: 5px; }
 
         @keyframes rgbGlow {
             0% { border-left: 4px solid #ff0055; }
-            33% { border-left: 4px solid #9900ff; }
-            66% { border-left: 4px solid #00ffff; }
-            100% { border-left: 4px solid #ff5500; }
+            33% { border-left: 4px solid #00ff88; }
+            66% { border-left: 4px solid #00bfff; }
+            100% { border-left: 4px solid #ffaa00; }
         }
 
         #form { 
             display: flex; 
-            background: rgba(15, 10, 30, 0.85); 
-            backdrop-filter: blur(8px);
+            background: #202c33; 
             padding: 10px; 
-            gap: 5px; 
+            gap: 8px; 
             align-items: center; 
-            border-top: 1px solid rgba(255, 85, 119, 0.3);
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.3);
         }
 
         #input { 
             flex: 1; 
-            padding: 10px; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            background: rgba(30, 20, 45, 0.8); 
+            padding: 10px 15px; 
+            border: none; 
+            background: #2a3942; 
             color: white; 
-            border-radius: 4px; 
+            border-radius: 8px; 
             outline: none; 
             font-size: 16px; 
         }
 
-        #input::placeholder { color: #aaa; }
+        #input::placeholder { color: #8696a0; }
 
         .btn { 
-            background: #ff2255; 
+            background: #00a884; 
             color: white; 
             border: none; 
-            padding: 10px 12px; 
-            border-radius: 4px; 
+            padding: 10px 15px; 
+            border-radius: 8px; 
             cursor: pointer; 
-            font-size: 13px; 
+            font-size: 14px; 
             white-space: nowrap; 
             font-weight: bold;
         }
-        .btn:disabled { background: #565e64; cursor: not-allowed; }
-        .btn:hover:not(:disabled) { background: #e01b4c; }
-        #record-btn.recording { background: #ff0000; animation: pulse 1.5s infinite; }
+        .btn:disabled { background: #374248; color: #777; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { background: #008f72; }
+        #record-btn.recording { background: #ea0038; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <header>⚡ Chatsapp - Sukuna Edition ⚡</header>
+    <header>⚡ Chatsapp ⚡</header>
     <div id="status">Connecting to server...</div>
 
     <div id="chat-window"></div>
@@ -240,7 +220,6 @@
                     audioChunks = [];
 
                     mediaRecorder.ondataavailable = event => {
-                        audioChunks.path(event.data); // Fixed
                         audioChunks.push(event.data);
                     };
 
