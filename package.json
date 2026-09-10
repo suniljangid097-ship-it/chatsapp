@@ -1,7 +1,7 @@
 {
   "name": "chatsapp",
   "version": "1.0.0",
-  "description": "Realtime chat application with voice notes",
+  "description": "Realtime chat application with voice and photo sharing",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
