@@ -1,7 +1,7 @@
 {
   "name": "chatsapp",
   "version": "1.0.0",
-  "description": "Realtime chat application with voice and photo sharing",
+  "description": "Realtime chat application with anime live background",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
