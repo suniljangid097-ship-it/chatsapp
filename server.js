@@ -10,7 +10,7 @@ const io = new Server(server);
 app.use(express.static(path.join(__dirname, 'public')));
 
 io.on('connection', (socket) => {
-    console.log('A user connected');
+    console.log('A user connected:', socket.id);
 
     socket.on('chat message', (data) => {
         io.emit('chat message', data);
@@ -24,8 +24,26 @@ io.on('connection', (socket) => {
         io.emit('image message', data);
     });
 
+    // WebRTC Video Call Signaling Events
+    socket.on('offer', (data) => {
+        socket.broadcast.emit('offer', data);
+    });
+
+    socket.on('answer', (data) => {
+        socket.broadcast.emit('answer', data);
+    });
+
+    socket.on('candidate', (data) => {
+        socket.broadcast.emit('candidate', data);
+    });
+
+    // Naya event: Jab koi call kaat de
+    socket.on('call_rejected', () => {
+        socket.broadcast.emit('call_rejected');
+    });
+
     socket.on('disconnect', () => {
-        console.log('A user disconnected');
+        console.log('A user disconnected:', socket.id);
     });
 });
 
