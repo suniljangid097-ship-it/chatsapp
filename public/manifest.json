@@ -1,0 +1,16 @@
+JSON
+{
+  "name": "Chatsapp",
+  "short_name": "Chatsapp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b141a",
+  "theme_color": "#1f2c34",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/134/134937.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
