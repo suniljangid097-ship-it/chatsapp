@@ -30,6 +30,7 @@
         .user-row:hover { background: rgba(255,255,255,0.2); }
         .user-row.active { background: rgba(0, 122, 255, 0.4); font-weight: bold; }
         .user-id-badge { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 5px; font-size: 11px; color: #a5b4fc;}
+        .add-chat-btn { margin-top: 10px; padding: 10px; text-align: center; background: rgba(255,255,255,0.1); border-radius: 8px; font-weight: bold; color: #a5b4fc; cursor: pointer;}
 
         header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.05); }
         #chat-window { flex: 1; padding: 50px 15px 20px 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
@@ -62,11 +63,11 @@
         .custom-input { width: 100%; box-sizing: border-box; padding: 15px; margin: 10px 0; border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; background: rgba(0,0,0,0.2); color: white; font-size: 16px; outline: none; text-align: center; text-shadow: none; }
         .custom-input::placeholder { color: rgba(255,255,255,0.5); }
         .submit-btn { background: #007AFF; color: white; border: none; padding: 14px 25px; margin-top: 10px; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); text-shadow: none; }
-        #auth-error { color: #FF3B30; font-size: 13px; font-weight: bold; min-height: 18px; margin-top: 5px; text-shadow: none;}
+        .error-msg { color: #FF3B30; font-size: 13px; font-weight: bold; min-height: 18px; margin-top: 5px; text-shadow: none;}
 
-        /* Modals & Call Styles (Same as before) */
         .wallpaper-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
         .wp-option { height: 80px; border-radius: 12px; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); background-size: cover !important; background-position: center !important; }
+        
         #video-container { display: none; position: fixed; top:0; left:0; width:100vw; height:100dvh; background:rgba(0,0,0,0.8); z-index:9999; flex-direction:column; justify-content:center; align-items:center; }
         video { width: 85vw; height: 35vh; background: rgba(0,0,0,0.5); border-radius: 20px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px;}
         .header-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(10px); text-shadow: none; cursor:pointer;}
@@ -86,7 +87,7 @@
         </div>
     </div>
 
-    <!-- VIP ID Setup -->
+    <!-- Login Modal -->
     <div id="name-modal-overlay" class="modal-overlay">
         <div class="modal-box glass">
             <h2 style="margin: 0 0 5px 0; font-weight: 600;">VIP Access</h2>
@@ -94,13 +95,25 @@
             <form id="custom-name-form">
                 <input type="text" id="custom-id-input" class="custom-input" placeholder="6-Digit Premium ID (e.g. 000007)" maxlength="6" pattern="\d{6}" required autocomplete="off" />
                 <input type="text" id="custom-name-input" class="custom-input" placeholder="Display Name" required autocomplete="off" />
-                <div id="auth-error"></div>
+                <div id="auth-error" class="error-msg"></div>
                 <button type="submit" class="submit-btn">Enter Chat</button>
             </form>
         </div>
     </div>
 
-    <!-- Wallpaper Settings -->
+    <!-- Add Friend Modal -->
+    <div id="add-friend-overlay" class="modal-overlay" style="display:none;">
+        <div class="modal-box glass">
+            <h2 style="margin: 0 0 5px 0;">New Private Chat</h2>
+            <p style="font-size: 13px; color: rgba(255,255,255,0.8);">Enter friend's 6-digit VIP ID</p>
+            <input type="text" id="search-id-input" class="custom-input" placeholder="e.g. 123456" maxlength="6" pattern="\d{6}">
+            <div id="search-error" class="error-msg"></div>
+            <button class="submit-btn" onclick="searchFriend()">Start Chat</button>
+            <button class="header-btn" style="width:100%; margin-top:10px; background:transparent; border:none;" onclick="document.getElementById('add-friend-overlay').style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Wallpapers -->
     <div id="settings-modal-overlay" class="modal-overlay" style="display: none;">
         <div class="modal-box glass">
             <h2 style="margin: 0;">Settings</h2>
@@ -116,10 +129,13 @@
         </div>
     </div>
 
+    <!-- Dynamic Island -->
     <div id="dynamic-island" class="glass">
         <div class="island-title"><span class="online-dot"></span> <span id="current-chat-title">Public Chat</span> ▾</div>
         <div id="users-list">
-            <div class="user-row active" onclick="setChatTarget('Public')">🌍 Public Chat</div>
+            <div class="user-row active" id="tab-Public" onclick="setChatTarget('Public', 'Public Chat')">🌍 Public Chat</div>
+            <!-- Dynamic local friends will appear here -->
+            <div class="add-chat-btn" onclick="openAddFriendModal()">➕ Add Private Chat</div>
         </div>
     </div>
 
@@ -147,6 +163,7 @@
         </form>
     </div>
 
+    <!-- Call Modals -->
     <div id="incoming-call-modal" class="modal-overlay" style="display:none; z-index:100001;">
         <div class="modal-box glass">
             <p>Incoming Video Call...</p>
@@ -156,7 +173,6 @@
             </div>
         </div>
     </div>
-
     <div id="video-container">
         <video id="remoteVideo" autoplay playsinline></video>
         <video id="localVideo" autoplay muted playsinline></video>
@@ -170,13 +186,13 @@
         let userId = "";
         let currentTarget = "Public"; 
         let messageIdCounter = 0;
+        let localFriends = []; // Stores IDs you are chatting with
+
         const sendAudio = document.getElementById('sound-send');
         const receiveAudio = document.getElementById('sound-receive');
 
         window.addEventListener('load', () => {
             setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 800); }, 3000); 
-            
-            // Auto-login from saved data
             const savedData = localStorage.getItem('chatsapp_auth');
             if(savedData) {
                 const data = JSON.parse(savedData);
@@ -185,7 +201,7 @@
                         userId = data.id; username = data.name;
                         document.getElementById('name-modal-overlay').style.display = 'none';
                     } else {
-                        localStorage.removeItem('chatsapp_auth'); // Data invalid/server reset
+                        localStorage.removeItem('chatsapp_auth');
                         document.getElementById('name-modal-overlay').style.display = 'flex';
                     }
                 });
@@ -197,54 +213,77 @@
 
         const dynamicIsland = document.getElementById('dynamic-island');
         dynamicIsland.addEventListener('click', (e) => {
-            if(!e.target.classList.contains('user-row') && !e.target.classList.contains('user-id-badge')) {
+            if(!e.target.classList.contains('user-row') && !e.target.classList.contains('user-id-badge') && !e.target.classList.contains('add-chat-btn')) {
                 dynamicIsland.classList.toggle('expanded');
             }
         });
+
+        // Search Friend System
+        function openAddFriendModal() {
+            dynamicIsland.classList.remove('expanded');
+            document.getElementById('add-friend-overlay').style.display = 'flex';
+            document.getElementById('search-error').textContent = "";
+        }
+
+        function searchFriend() {
+            const targetId = document.getElementById('search-id-input').value.trim();
+            if(!/^\d{6}$/.test(targetId)) { document.getElementById('search-error').textContent = "❌ Enter a valid 6-digit ID"; return; }
+            
+            socket.emit('find_user', targetId, (response) => {
+                if (response.success) {
+                    document.getElementById('add-friend-overlay').style.display = 'none';
+                    document.getElementById('search-id-input').value = "";
+                    addPrivateChatTab(response.id, response.name);
+                    setChatTarget(response.id, response.name);
+                } else {
+                    document.getElementById('search-error').textContent = response.message;
+                }
+            });
+        }
+
+        function addPrivateChatTab(id, name) {
+            if(!localFriends.includes(id)) {
+                localFriends.push(id);
+                const list = document.getElementById('users-list');
+                const btn = document.querySelector('.add-chat-btn');
+                const newRow = document.createElement('div');
+                newRow.className = `user-row`;
+                newRow.id = `tab-${id}`;
+                newRow.innerHTML = `<span>👤 ${name}</span><span class="user-id-badge">ID: ${id}</span>`;
+                newRow.onclick = () => setChatTarget(id, name);
+                list.insertBefore(newRow, btn);
+            }
+        }
 
         function setChatTarget(id, name) {
             currentTarget = id;
             document.getElementById('current-chat-title').textContent = (id === 'Public') ? "Public Chat" : `Chat with ${name}`;
             dynamicIsland.classList.remove('expanded');
+            
+            // UI Tab switch
             document.querySelectorAll('.user-row').forEach(row => row.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-        }
+            document.getElementById(`tab-${id}`).classList.add('active');
 
-        socket.on('update_users', (users) => {
-            const list = document.getElementById('users-list');
-            list.innerHTML = `<div class="user-row ${currentTarget==='Public'?'active':''}" onclick="setChatTarget('Public', 'Public Chat')">🌍 Public Chat</div>`;
-            for(let sid in users) {
-                if(users[sid].id !== userId) {
-                    list.innerHTML += `<div class="user-row ${currentTarget===sid?'active':''}" onclick="setChatTarget('${sid}', '${users[sid].name}')">
-                        <span>👤 ${users[sid].name}</span>
-                        <span class="user-id-badge">ID: ${users[sid].id}</span>
-                    </div>`;
-                }
-            }
-        });
+            // Hide/Show correct messages
+            document.querySelectorAll('.message-wrapper').forEach(msg => {
+                msg.style.display = (msg.getAttribute('data-chat-id') === currentTarget) ? 'flex' : 'none';
+            });
+            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+        }
 
         document.getElementById('custom-name-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const idVal = document.getElementById('custom-id-input').value.trim();
             const nameVal = document.getElementById('custom-name-input').value.trim();
-            
-            if(!/^\d{6}$/.test(idVal)) {
-                document.getElementById('auth-error').textContent = "❌ ID must be exactly 6 numbers.";
-                return;
-            }
-
             socket.emit('register_user', { id: idVal, name: nameVal }, (response) => {
                 if(response.success) {
                     userId = idVal; username = nameVal;
                     localStorage.setItem('chatsapp_auth', JSON.stringify({ id: idVal, name: nameVal }));
                     document.getElementById('name-modal-overlay').style.display = 'none';
-                } else {
-                    document.getElementById('auth-error').textContent = response.message;
-                }
+                } else { document.getElementById('auth-error').textContent = response.message; }
             });
         });
 
-        // Settings, Emojis, Core Chat & WebRTC logic remains unchanged
         document.getElementById('settings-btn').addEventListener('click', () => document.getElementById('settings-modal-overlay').style.display = 'flex');
         document.getElementById('close-settings').addEventListener('click', () => document.getElementById('settings-modal-overlay').style.display = 'none');
         document.querySelectorAll('.wp-option').forEach(opt => {
@@ -254,43 +293,50 @@
             });
         });
 
-        const emojiBtn = document.getElementById('emoji-btn');
-        const emojiPicker = document.getElementById('emoji-picker');
-        const mainInput = document.getElementById('input');
+        const emojiBtn = document.getElementById('emoji-btn'); const emojiPicker = document.getElementById('emoji-picker'); const mainInput = document.getElementById('input');
         emojiBtn.addEventListener('click', () => { emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex'; });
         document.querySelectorAll('.emoji-item').forEach(em => { em.addEventListener('click', (e) => { mainInput.value += e.target.textContent; emojiPicker.style.display = 'none'; }); });
 
         let typingTimer;
-        mainInput.addEventListener('input', () => { socket.emit('typing', { name: username }); clearTimeout(typingTimer); typingTimer = setTimeout(() => { socket.emit('stop_typing', { name: username }); }, 1500); });
-        socket.on('typing', (data) => { document.getElementById('typing-indicator').textContent = `${data.name} is typing...`; });
+        mainInput.addEventListener('input', () => { socket.emit('typing', { to: currentTarget }); clearTimeout(typingTimer); typingTimer = setTimeout(() => { socket.emit('stop_typing', { to: currentTarget }); }, 1500); });
+        socket.on('typing', (data) => { if(data.to === currentTarget || (currentTarget !== 'Public' && data.from_id === currentTarget)) document.getElementById('typing-indicator').textContent = `${data.name} is typing...`; });
         socket.on('stop_typing', () => { document.getElementById('typing-indicator').textContent = ''; });
 
         function triggerVibration() { if (navigator.vibrate) navigator.vibrate(40); }
 
         function appendMessage(data, contentHtml, typeLabel = "") {
-            const wrapper = document.createElement('div');
-            wrapper.className = `message-wrapper ${data.name === username ? 'sent' : 'received'}`;
-            const msgId = 'msg-' + (++messageIdCounter); wrapper.id = msgId;
-            const msgBubble = document.createElement('div'); msgBubble.className = 'message';
-            msgBubble.addEventListener('dblclick', () => { socket.emit('reaction', { msgId: msgId, emoji: '❤️' }); triggerVibration(); });
-
-            const labelText = typeLabel ? `${data.name} (${typeLabel})` : data.name;
-            msgBubble.innerHTML = (data.name !== username) ? `<span class="username">${labelText}</span>${contentHtml}` : contentHtml;
-            const reactionDiv = document.createElement('div'); reactionDiv.className = 'reaction'; msgBubble.appendChild(reactionDiv); wrapper.appendChild(msgBubble);
+            // Determine which chat tab this message belongs to
+            const chatId = (data.to === 'Public') ? 'Public' : (data.from_id === userId ? data.to : data.from_id);
             
-            if(data.to && data.to !== 'Public') {
-                const privateTag = document.createElement('div'); privateTag.style.fontSize = '10px'; privateTag.style.color = 'gold'; privateTag.textContent = '🔒 Private'; wrapper.appendChild(privateTag);
+            // If message received from a new private friend, auto-add their tab
+            if(chatId !== 'Public' && chatId !== userId && !localFriends.includes(chatId)) {
+                addPrivateChatTab(data.from_id, data.name);
             }
 
-            document.getElementById('chat-window').appendChild(wrapper); document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-            if (data.name === username) { sendAudio.play().catch(()=>{}); } else { receiveAudio.play().catch(()=>{}); triggerVibration(); }
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${data.from_id === userId ? 'sent' : 'received'}`;
+            wrapper.setAttribute('data-chat-id', chatId);
+            wrapper.id = 'msg-' + (++messageIdCounter);
+            
+            if (chatId !== currentTarget) wrapper.style.display = 'none';
+
+            const msgBubble = document.createElement('div'); msgBubble.className = 'message';
+            msgBubble.addEventListener('dblclick', () => { socket.emit('reaction', { msgId: wrapper.id, emoji: '❤️' }); triggerVibration(); });
+
+            const labelText = typeLabel ? `${data.name} (${typeLabel})` : data.name;
+            msgBubble.innerHTML = (data.from_id !== userId) ? `<span class="username">${labelText}</span>${contentHtml}` : contentHtml;
+            const reactionDiv = document.createElement('div'); reactionDiv.className = 'reaction'; msgBubble.appendChild(reactionDiv); wrapper.appendChild(msgBubble);
+            
+            document.getElementById('chat-window').appendChild(wrapper); 
+            if(chatId === currentTarget) document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+            if (data.from_id === userId) { sendAudio.play().catch(()=>{}); } else { receiveAudio.play().catch(()=>{}); triggerVibration(); }
         }
 
         socket.on('reaction', (data) => { const wrapper = document.getElementById(data.msgId); if(wrapper) { const rxDiv = wrapper.querySelector('.reaction'); rxDiv.textContent = data.emoji; rxDiv.style.display = 'block'; } });
 
         document.getElementById('form').addEventListener('submit', (e) => {
             e.preventDefault();
-            if (mainInput.value && username) { socket.emit('chat message', { name: username, text: mainInput.value, to: currentTarget }); mainInput.value = ''; socket.emit('stop_typing', { name: username }); }
+            if (mainInput.value && username) { socket.emit('chat message', { text: mainInput.value, to: currentTarget }); mainInput.value = ''; socket.emit('stop_typing', { to: currentTarget }); }
         });
         socket.on('chat message', (data) => appendMessage(data, data.text));
 
@@ -302,7 +348,7 @@
                     const img = new Image(); img.onload = () => {
                         const canvas = document.createElement('canvas'); let w = img.width, h = img.height;
                         if(w>800){h*=800/w;w=800;} canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h);
-                        socket.emit('image message', { name: username, image: canvas.toDataURL('image/jpeg', 0.7), to: currentTarget });
+                        socket.emit('image message', { image: canvas.toDataURL('image/jpeg', 0.7), to: currentTarget });
                     }; img.src = ev.target.result;
                 }; r.readAsDataURL(e.target.files[0]);
             }
@@ -315,37 +361,40 @@
                 try {
                     mediaRec = new MediaRecorder(await navigator.mediaDevices.getUserMedia({audio:true})); chunks=[];
                     mediaRec.ondataavailable = e => chunks.push(e.data);
-                    mediaRec.onstop = () => { if(chunks.length>0){ const r = new FileReader(); r.onloadend = () => socket.emit('voice message', {name:username, audio:r.result, to:currentTarget}); r.readAsDataURL(new Blob(chunks, {type:'audio/webm'})); } };
+                    mediaRec.onstop = () => { if(chunks.length>0){ const r = new FileReader(); r.onloadend = () => socket.emit('voice message', {audio:r.result, to:currentTarget}); r.readAsDataURL(new Blob(chunks, {type:'audio/webm'})); } };
                     mediaRec.start(); this.classList.add('recording'); this.textContent = '■';
                 } catch(e){ alert("Mic error"); }
             } else { mediaRec.stop(); this.classList.remove('recording'); this.textContent = '🎙'; }
         });
         socket.on('voice message', (data) => { const a = document.createElement('audio'); a.controls=true; a.src=data.audio; a.style.width='100%'; appendMessage(data, a.outerHTML, "Audio"); });
 
+        // Video Call with Privacy Target
         let localStream, peerConn, pendingOffer = null;
         document.getElementById('video-call-btn').addEventListener('click', async () => {
+            if(!username) return;
+            if(currentTarget === 'Public') { alert("📹 Please select a Private Chat to use FaceTime!"); return; }
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true}); document.getElementById('localVideo').srcObject = localStream; document.getElementById('video-container').style.display = 'flex';
                 peerConn = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
                 localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
-                peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; }; peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', e.candidate); };
-                const offer = await peerConn.createOffer(); await peerConn.setLocalDescription(offer); socket.emit('offer', offer);
+                peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; }; peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', { sdp: e.candidate, to: currentTarget }); };
+                const offer = await peerConn.createOffer(); await peerConn.setLocalDescription(offer); socket.emit('offer', { sdp: offer, to: currentTarget });
             } catch(e){ alert("Cam/Mic error"); }
         });
-        socket.on('offer', o => { pendingOffer=o; document.getElementById('incoming-call-modal').style.display='flex'; document.getElementById('ringtone').play().catch(()=>{}); });
+        socket.on('offer', data => { pendingOffer=data.sdp; document.getElementById('incoming-call-modal').style.display='flex'; document.getElementById('ringtone').play().catch(()=>{}); });
         document.getElementById('accept-call-btn').addEventListener('click', async () => {
             document.getElementById('incoming-call-modal').style.display='none'; document.getElementById('ringtone').pause();
             localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true}); document.getElementById('localVideo').srcObject = localStream; document.getElementById('video-container').style.display = 'flex';
             peerConn = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
             localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
-            peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; }; peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', e.candidate); };
+            peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; }; peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', { sdp: e.candidate, to: currentTarget }); };
             await peerConn.setRemoteDescription(new RTCSessionDescription(pendingOffer));
-            const ans = await peerConn.createAnswer(); await peerConn.setLocalDescription(ans); socket.emit('answer', ans);
+            const ans = await peerConn.createAnswer(); await peerConn.setLocalDescription(ans); socket.emit('answer', { sdp: ans, to: currentTarget });
         });
-        document.getElementById('reject-call-btn').addEventListener('click', () => { document.getElementById('incoming-call-modal').style.display='none'; document.getElementById('ringtone').pause(); socket.emit('call_rejected'); });
+        document.getElementById('reject-call-btn').addEventListener('click', () => { document.getElementById('incoming-call-modal').style.display='none'; document.getElementById('ringtone').pause(); socket.emit('call_rejected', { to: currentTarget }); });
         socket.on('call_rejected', () => { alert("Call Declined."); endCall(); });
-        socket.on('answer', async a => { if(peerConn) await peerConn.setRemoteDescription(new RTCSessionDescription(a)); });
-        socket.on('candidate', async c => { if(peerConn) try{await peerConn.addIceCandidate(new RTCIceCandidate(c));}catch(e){} });
+        socket.on('answer', async data => { if(peerConn) await peerConn.setRemoteDescription(new RTCSessionDescription(data.sdp)); });
+        socket.on('candidate', async data => { if(peerConn) try{await peerConn.addIceCandidate(new RTCIceCandidate(data.sdp));}catch(e){} });
         document.getElementById('end-call-btn').addEventListener('click', endCall);
         function endCall() { if(localStream) localStream.getTracks().forEach(t=>t.stop()); if(peerConn) peerConn.close(); document.getElementById('video-container').style.display='none'; document.getElementById('incoming-call-modal').style.display='none'; document.getElementById('ringtone').pause(); }
     </script>
