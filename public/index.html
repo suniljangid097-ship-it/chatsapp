@@ -29,6 +29,39 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* 🎬 APPLE EVENT STYLE SPLASH SCREEN */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+            background: #000000; z-index: 999999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+        .splash-text-container {
+            display: flex; align-items: baseline; justify-content: center;
+        }
+        .brand-main {
+            font-size: 42px; font-weight: 700; letter-spacing: -1px;
+            opacity: 0; animation: fadeUpIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            background: linear-gradient(to right, #fff, #a5b4fc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .brand-sub {
+            font-size: 42px; font-weight: 300; color: #86868b; /* Apple Pro Grey */
+            margin-left: 10px; letter-spacing: -1px;
+            opacity: 0;
+            /* Clip path makes it look like it's sliding out from behind the first word */
+            animation: slideOutRight 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards; 
+        }
+
+        @keyframes fadeUpIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideOutRight {
+            from { opacity: 0; transform: translateX(-40px); clip-path: inset(0 100% 0 0); }
+            to { opacity: 1; transform: translateX(0); clip-path: inset(0 0 0 0); }
+        }
+
         /* LIQUID GLASS EFFECT CLASS */
         .glass {
             background: rgba(255, 255, 255, 0.05);
@@ -39,86 +72,36 @@
         }
 
         header { 
-            padding: 12px 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-size: 20px; 
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            z-index: 10;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 12px 15px; display: flex; justify-content: space-between; 
+            align-items: center; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;
+            z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
 
         #status { 
-            background: rgba(255, 204, 0, 0.2); 
-            backdrop-filter: blur(5px);
-            color: #ffcc00; 
-            padding: 6px; 
-            text-align: center; 
-            font-size: 12px; 
-            font-weight: 500;
+            background: rgba(255, 204, 0, 0.2); backdrop-filter: blur(5px);
+            color: #ffcc00; padding: 6px; text-align: center; font-size: 12px; font-weight: 500;
         }
 
         #chat-window { 
-            flex: 1; 
-            padding: 20px 15px; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            scroll-behavior: smooth;
+            flex: 1; padding: 20px 15px; overflow-y: auto; display: flex; 
+            flex-direction: column; gap: 15px; scroll-behavior: smooth;
         }
         
         /* iMessage Style Bubbles */
-        .message { 
-            padding: 12px 16px; 
-            border-radius: 20px; 
-            max-width: 80%; 
-            word-wrap: break-word; 
-            font-size: 15.5px; 
-            line-height: 1.4;
-            position: relative;
-        }
-
-        .message.sent { 
-            margin-left: auto; 
-            background: linear-gradient(135deg, #007AFF, #0056b3); 
-            color: white;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-        }
-
-        .message.received { 
-            margin-right: auto; 
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #f1f1f1;
-            border-bottom-left-radius: 4px; 
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
+        .message { padding: 12px 16px; border-radius: 20px; max-width: 80%; word-wrap: break-word; font-size: 15.5px; line-height: 1.4; position: relative; }
+        .message.sent { margin-left: auto; background: linear-gradient(135deg, #007AFF, #0056b3); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); }
+        .message.received { margin-right: auto; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #f1f1f1; border-bottom-left-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1); }
         .message .username { font-weight: 600; color: rgba(255,255,255,0.6); font-size: 11px; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px;}
         .message img { width: 100%; border-radius: 12px; display: block; margin-top: 5px; }
 
-        /* Floating Input Dock (Apple Style) */
+        /* Floating Input Dock */
         #form-container { padding: 10px 15px; padding-bottom: env(safe-area-inset-bottom, 15px); }
         #form { display: flex; padding: 8px; gap: 8px; align-items: center; border-radius: 35px; }
         #input { flex: 1; padding: 10px 15px; border: none; background: transparent; color: white; outline: none; font-size: 16px; }
         #input::placeholder { color: rgba(255,255,255,0.5); }
-
-        .icon-btn { 
-            background: rgba(255,255,255,0.1); color: white; border: none; width: 40px; height: 40px; 
-            border-radius: 50%; display: flex; justify-content: center; align-items: center; 
-            font-size: 18px; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease;
-        }
+        .icon-btn { background: rgba(255,255,255,0.1); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease; }
         .icon-btn:hover { background: rgba(255,255,255,0.2); }
         .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         
@@ -130,27 +113,12 @@
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         /* Settings Modal (Apple Wallpaper Picker) */
-        #settings-modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            z-index: 90000; display: none; justify-content: center; align-items: center;
-        }
-        #settings-modal {
-            padding: 25px; border-radius: 25px; text-align: center; width: 85%; max-width: 350px;
-        }
-        .wallpaper-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;
-        }
-        .wp-option {
-            height: 90px; border-radius: 15px; cursor: pointer; border: 2px solid rgba(255,255,255,0.1);
-            background-size: cover !important; background-position: center !important;
-            transition: transform 0.2s;
-        }
+        #settings-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 90000; display: none; justify-content: center; align-items: center; }
+        #settings-modal { padding: 25px; border-radius: 25px; text-align: center; width: 85%; max-width: 350px; }
+        .wallpaper-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .wp-option { height: 90px; border-radius: 15px; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); background-size: cover !important; background-position: center !important; transition: transform 0.2s; }
         .wp-option:hover { transform: scale(1.05); border-color: #007AFF; }
-        .close-settings-btn {
-            background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px 25px;
-            border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%;
-        }
+        .close-settings-btn { background: rgba(255,255,255,0.1); color: white; border: none; padding: 12px 25px; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; }
 
         /* Call Modals */
         #video-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
@@ -164,11 +132,7 @@
         .btn-reject { background: #FF3B30; color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);}
         
         /* PREMIUM CUSTOM NAME POPUP */
-        #name-modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            z-index: 100000; display: flex; justify-content: center; align-items: center;
-        }
+        #name-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100000; display: flex; justify-content: center; align-items: center; }
         #name-modal { padding: 30px 25px; border-radius: 25px; text-align: center; width: 85%; max-width: 340px; }
         #custom-name-input { width: 100%; box-sizing: border-box; padding: 15px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; background: rgba(0,0,0,0.2); color: white; font-size: 16px; outline: none; text-align: center; }
         #custom-name-input::placeholder { color: rgba(255,255,255,0.4); }
@@ -179,6 +143,14 @@
     </style>
 </head>
 <body>
+
+    <!-- 🎬 CINEMATIC SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-text-container">
+            <span class="brand-main">Chatsapp</span>
+            <span class="brand-sub">easy chat</span>
+        </div>
+    </div>
 
     <!-- CUSTOM LIQUID GLASS NAME ENTRY -->
     <div id="name-modal-overlay">
@@ -199,19 +171,11 @@
             <p style="margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.7);">Choose Chat Wallpaper</p>
             
             <div class="wallpaper-grid">
-                <!-- Apple macOS Monterey Style -->
                 <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')" style="background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop');"></div>
-                
-                <!-- Apple iOS Liquid Glass Style -->
                 <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2564&auto=format&fit=crop')" style="background: url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=400&auto=format&fit=crop');"></div>
-                
-                <!-- Apple Colorful Abstract Mesh -->
                 <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=2670&auto=format&fit=crop')" style="background: url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=400&auto=format&fit=crop');"></div>
-                
-                <!-- Default Animated Dark Glass -->
                 <div class="wp-option" data-bg="linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000)" style="background: linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000);"></div>
             </div>
-
             <button id="close-settings" class="close-settings-btn">Done</button>
         </div>
     </div>
@@ -261,6 +225,15 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // 🎬 SPLASH SCREEN TIMING LOGIC
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 800); // Wait for fade out
+            }, 3000); // 3 seconds hold time to admire the animation
+        });
+
         // Set wallpaper from localStorage on load
         const savedBg = localStorage.getItem('chatsapp_bg');
         if(savedBg) {
@@ -268,7 +241,7 @@
             document.body.style.backgroundSize = 'cover';
             document.body.style.backgroundPosition = 'center';
             document.body.style.backgroundAttachment = 'fixed';
-            if(!savedBg.includes('gradient')) document.body.style.animation = 'none'; // Stop animation for images
+            if(!savedBg.includes('gradient')) document.body.style.animation = 'none';
         }
 
         const socket = io();
@@ -316,19 +289,14 @@
                 }
                 
                 localStorage.setItem('chatsapp_bg', bg);
-                // Highlight selection animation
                 this.style.transform = 'scale(0.9)';
                 setTimeout(() => this.style.transform = 'scale(1)', 150);
             });
         });
 
-        socket.on('connect', () => {
-            document.getElementById('status').style.display = 'none';
-        });
+        socket.on('connect', () => { document.getElementById('status').style.display = 'none'; });
 
-        function triggerVibration() {
-            if (navigator.vibrate) navigator.vibrate(50); 
-        }
+        function triggerVibration() { if (navigator.vibrate) navigator.vibrate(50); }
 
         function appendMessage(data, contentHtml, typeLabel = "") {
             const item = document.createElement('div');
@@ -418,17 +386,13 @@
         socket.on('voice message', (data) => {
             const audio = document.createElement('audio'); audio.controls = true; audio.src = data.audio; audio.style.width = '100%'; audio.style.marginTop = '5px';
             const item = document.createElement('div'); item.className = `message ${data.name === username ? 'sent' : 'received'}`;
-            if(data.name !== username){
-                item.innerHTML = `<span class="username">${data.name} (Audio)</span>`; 
-            } else {
-                item.innerHTML = ``;
-            }
-            item.appendChild(audio);
-            chatWindow.appendChild(item); chatWindow.scrollTop = chatWindow.scrollHeight;
+            if(data.name !== username){ item.innerHTML = `<span class="username">${data.name} (Audio)</span>`; } 
+            else { item.innerHTML = ``; }
+            item.appendChild(audio); chatWindow.appendChild(item); chatWindow.scrollTop = chatWindow.scrollHeight;
             triggerVibration(); 
         });
 
-        // VIDEO CALL WITH RINGING TONE & UI
+        // VIDEO CALL
         let localStream, remoteStream, peerConnection, pendingOffer = null;
         const servers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
         const videoContainer = document.getElementById('video-container');
@@ -459,15 +423,13 @@
         }
 
         socket.on('offer', (offer) => {
-            pendingOffer = offer;
-            incomingModal.style.display = 'block';
+            pendingOffer = offer; incomingModal.style.display = 'block';
             ringtone.play().catch(e => console.log("Blocked by browser"));
             triggerVibration(); 
         });
 
         document.getElementById('accept-call-btn').addEventListener('click', async () => {
-            incomingModal.style.display = 'none';
-            stopRingtone();
+            incomingModal.style.display = 'none'; stopRingtone();
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
@@ -484,17 +446,13 @@
         });
 
         document.getElementById('reject-call-btn').addEventListener('click', () => {
-            incomingModal.style.display = 'none'; stopRingtone(); pendingOffer = null;
-            socket.emit('call_rejected'); 
+            incomingModal.style.display = 'none'; stopRingtone(); pendingOffer = null; socket.emit('call_rejected'); 
         });
 
         socket.on('call_rejected', () => { alert("Call Declined."); endCall(); });
-
         socket.on('answer', async (answer) => {
-            if (peerConnection && !peerConnection.currentRemoteDescription) 
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+            if (peerConnection && !peerConnection.currentRemoteDescription) await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
         });
-
         socket.on('candidate', async (candidate) => {
             if (peerConnection) try { await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)); } catch (e) {}
         });
