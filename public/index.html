@@ -10,11 +10,12 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #ffffff; transition: background 0.5s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
+        /* Splash Screen */
         #splash-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #000000; z-index: 999999; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease-out, visibility 0.8s; }
         .splash-text-container { display: flex; align-items: baseline; justify-content: center; }
         .brand-main { font-size: 42px; font-weight: 700; letter-spacing: -1px; opacity: 0; animation: fadeUpIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; background: linear-gradient(to right, #fff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; }
         .brand-sub { font-size: 42px; font-weight: 300; color: #86868b; margin-left: 10px; letter-spacing: -1px; opacity: 0; animation: slideOutRight 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards; text-shadow: none; }
-        @keyframes fadeUpIn { from { opacity: 0; transform: translateY(15px) scale(0.95); } to { opacity: 1; transform: translateY(0); scale(1); } }
+        @keyframes fadeUpIn { from { opacity: 0; transform: translateY(15px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes slideOutRight { from { opacity: 0; transform: translateX(-40px); clip-path: inset(0 100% 0 0); } to { opacity: 1; transform: translateX(0); clip-path: inset(0 0 0 0); } }
 
         .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
@@ -231,10 +232,18 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        setTimeout(() => {
-            const splash = document.getElementById('splash-screen');
-            if(splash) { splash.style.opacity = '0'; setTimeout(() => splash.style.display = 'none', 800); }
+        // Bulletproof Splash Screen Timer with Safety Fallback
+        const splashTimer = setTimeout(() => {
+            hideSplash();
         }, 3000);
+
+        function hideSplash() {
+            const splash = document.getElementById('splash-screen');
+            if(splash && splash.style.display !== 'none') {
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 800);
+            }
+        }
 
         const socket = io();
         let username = "";
@@ -247,23 +256,33 @@
         const receiveAudio = document.getElementById('sound-receive');
 
         window.addEventListener('load', () => {
+            hideSplash(); // Ensure splash clears immediately on load
             const savedData = localStorage.getItem('chatsapp_auth');
             if(savedData) {
-                const data = JSON.parse(savedData);
-                socket.emit('register_user', data, (response) => {
-                    if(response.success) {
-                        userId = data.id; username = data.name;
-                        updateProfileDisplay();
-                        document.getElementById('name-modal-overlay').style.display = 'none';
+                try {
+                    const data = JSON.parse(savedData);
+                    if(data && data.id && data.name) {
+                        socket.emit('register_user', data, (response) => {
+                            if(response && response.success) {
+                                userId = data.id; username = data.name;
+                                updateProfileDisplay();
+                                document.getElementById('name-modal-overlay').style.display = 'none';
+                            } else {
+                                localStorage.removeItem('chatsapp_auth');
+                                document.getElementById('name-modal-overlay').style.display = 'flex';
+                            }
+                        });
                     } else {
-                        localStorage.removeItem('chatsapp_auth');
-                        document.getElementById('name-modal-overlay').style.display = 'flex';
+                        throw new Error("Invalid");
                     }
-                });
+                } catch(err) {
+                    localStorage.removeItem('chatsapp_auth');
+                    document.getElementById('name-modal-overlay').style.display = 'flex';
+                }
             }
         });
 
-        // 🔔 Handle Offline Notifications when coming online
+        // Handle Offline Notifications when coming online
         socket.on('offline_notification', (msg) => {
             showOfflinePopup(msg.from_name, msg.text, msg.time);
             document.getElementById('island-main-pill').classList.add('ring');
@@ -277,7 +296,7 @@
             popup.classList.add('show');
             receiveAudio.play().catch(()=>{});
             triggerVibration();
-            setTimeout(() => { dismissPopup(); }, 5000); // Auto hide after 5 seconds
+            setTimeout(() => { dismissPopup(); }, 5000);
         }
 
         function dismissPopup() {
@@ -319,13 +338,13 @@
             if(!/^\d{6}$/.test(targetId)) { document.getElementById('search-error').textContent = "❌ Enter a valid 6-digit ID"; return; }
             
             socket.emit('find_user', targetId, (response) => {
-                if (response.success) {
+                if (response && response.success) {
                     document.getElementById('add-friend-overlay').style.display = 'none';
                     document.getElementById('search-id-input').value = "";
                     addPrivateChatTab(response.id, response.name);
                     setChatTarget(response.id, response.name);
                 } else {
-                    document.getElementById('search-error').textContent = response.message;
+                    document.getElementById('search-error').textContent = response ? response.message : "Error";
                 }
             });
         }
@@ -364,12 +383,12 @@
             const idVal = document.getElementById('custom-id-input').value.trim();
             const nameVal = document.getElementById('custom-name-input').value.trim();
             socket.emit('register_user', { id: idVal, name: nameVal }, (response) => {
-                if(response.success) {
+                if(response && response.success) {
                     userId = idVal; username = nameVal;
                     updateProfileDisplay();
                     localStorage.setItem('chatsapp_auth', JSON.stringify({ id: idVal, name: nameVal }));
                     document.getElementById('name-modal-overlay').style.display = 'none';
-                } else { document.getElementById('auth-error').textContent = response.message; }
+                } else { document.getElementById('auth-error').textContent = response ? response.message : "Error"; }
             });
         });
 
