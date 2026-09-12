@@ -12,35 +12,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
-    socket.on('chat message', (data) => {
-        io.emit('chat message', data);
-    });
+    socket.on('chat message', (data) => io.emit('chat message', data));
+    socket.on('voice message', (data) => io.emit('voice message', data));
+    socket.on('image message', (data) => io.emit('image message', data));
 
-    socket.on('voice message', (data) => {
-        io.emit('voice message', data);
-    });
-
-    socket.on('image message', (data) => {
-        io.emit('image message', data);
-    });
-
-    // WebRTC Video Call Signaling Events
-    socket.on('offer', (data) => {
-        socket.broadcast.emit('offer', data);
-    });
-
-    socket.on('answer', (data) => {
-        socket.broadcast.emit('answer', data);
-    });
-
-    socket.on('candidate', (data) => {
-        socket.broadcast.emit('candidate', data);
-    });
-
-    // Naya event: Jab koi call kaat de
-    socket.on('call_rejected', () => {
-        socket.broadcast.emit('call_rejected');
-    });
+    // WebRTC Calling Signaling
+    socket.on('offer', (data) => socket.broadcast.emit('offer', data));
+    socket.on('answer', (data) => socket.broadcast.emit('answer', data));
+    socket.on('candidate', (data) => socket.broadcast.emit('candidate', data));
+    
+    // Call Reject and End Call Signals
+    socket.on('call_rejected', () => socket.broadcast.emit('call_rejected'));
+    socket.on('end_call', () => socket.broadcast.emit('end_call')); // Naya End Call Feature
 
     socket.on('disconnect', () => {
         console.log('A user disconnected:', socket.id);
