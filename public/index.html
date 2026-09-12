@@ -7,7 +7,24 @@
     <link rel="manifest" href="/manifest.json">
     <title>Chatsapp - Premium</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #090d16); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #ffffff; transition: background 0.5s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100dvh; 
+            overflow: hidden; 
+            background: linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #090d16); 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat; 
+            background-attachment: fixed;
+            animation: gradientBG 15s ease infinite; 
+            color: #ffffff; 
+            transition: background 0.4s ease; 
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4); 
+        }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         #splash-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #000000; z-index: 999999; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease-out, visibility 0.8s; }
@@ -19,7 +36,6 @@
 
         .glass { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
 
-        /* ✨ LIQUID GLASS DYNAMIC ISLAND (METAL SHINE & FROSTED GLASS) */
         #dynamic-island-container { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; z-index: 100; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .island-left { width: 26px; height: 26px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.25); display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.4); cursor: pointer; }
         
@@ -55,6 +71,7 @@
         .popup-text { font-size: 13px; margin: 0; color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
         #chat-window { flex: 1; padding: 65px 15px 20px 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         
         .message-wrapper { display: flex; flex-direction: column; position: relative; max-width: 80%; }
@@ -101,7 +118,14 @@
         
         #video-container { display: none; position: fixed; top:0; left:0; width:100vw; height:100dvh; background:rgba(0,0,0,0.85); z-index:9999; flex-direction:column; justify-content:center; align-items:center; }
         video { width: 85vw; height: 35vh; background: rgba(0,0,0,0.5); border-radius: 22px; object-fit: cover; border: 1px solid rgba(255,255,255,0.25); margin-bottom: 15px;}
-        .header-btn { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.18); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(12px); text-shadow: none; cursor:pointer;}
+        
+        /* Voice Call UI Overlay */
+        #voice-call-overlay { display: none; position: fixed; top:0; left:0; width:100vw; height:100dvh; background:rgba(10,15,25,0.9); backdrop-filter: blur(25px); z-index:9999; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
+        .voice-avatar { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #007AFF, #0056b3); display: flex; justify-content: center; align-items: center; font-size: 50px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,122,255,0.5); }
+        .call-status-text { font-size: 20px; font-weight: 600; margin: 0 0 8px 0; }
+        .call-duration { font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 35px; }
+
+        .header-btn { background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.18); padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(12px); text-shadow: none; cursor:pointer;}
         .profile-card { background: rgba(0,0,0,0.25); padding: 15px; border-radius: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.12); text-align: left; }
         .profile-card p { margin: 5px 0; font-size: 14px; color: rgba(255,255,255,0.9); text-shadow: none; }
 
@@ -113,6 +137,7 @@
     <audio id="sound-send" src="https://assets.mixkit.co/active_storage/sfx/2332/2332-preview.mp3"></audio>
     <audio id="sound-receive" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
     <audio id="ringtone" loop src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3"></audio>
+    <audio id="remoteAudio" autoplay></audio>
 
     <div id="splash-screen">
         <div class="splash-text-container">
@@ -163,12 +188,12 @@
             </div>
             <p style="font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 15px;">Choose Wallpaper</p>
             <div class="wallpaper-grid">
-                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400')"></div>
-                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=400')"></div>
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920')"></div>
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=1920')"></div>
                 <div class="wp-option" data-bg="linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000)"></div>
-                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005192384-a83a8bd57fbe?q=80&w=400')"></div>
-                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=400')"></div>
-                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1505909182942-e2f09aee3e89?q=80&w=400')"></div>
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005192384-a83a8bd57fbe?q=80&w=1920')"></div>
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=1920')"></div>
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1505909182942-e2f09aee3e89?q=80&w=1920')"></div>
             </div>
             <button id="close-settings" class="header-btn" style="width:100%;">Done</button>
         </div>
@@ -190,7 +215,10 @@
 
     <header>
         <button id="settings-btn" class="icon-btn" style="width: 36px; height: 36px; font-size: 15px;">⚙️</button>
-        <button class="header-btn" id="video-call-btn">📹 Call</button>
+        <div class="header-actions">
+            <button class="header-btn" id="voice-call-btn">📞 Audio</button>
+            <button class="header-btn" id="video-call-btn">📹 Video</button>
+        </div>
     </header>
     
     <div id="chat-window"></div>
@@ -212,19 +240,30 @@
         </form>
     </div>
 
+    <!-- Incoming Call Modal -->
     <div id="incoming-call-modal" class="modal-overlay" style="display:none; z-index:100001;">
         <div class="modal-box glass">
-            <p>Incoming Video Call...</p>
+            <p id="incoming-call-type" style="font-size:16px; font-weight:600;">Incoming Call...</p>
             <div style="display:flex; justify-content:space-around; margin-top:20px;">
-                <button id="reject-call-btn" style="background:#FF3B30; color:white; border:none; padding:10px 20px; border-radius:20px;">Decline</button>
-                <button id="accept-call-btn" style="background:#34C759; color:white; border:none; padding:10px 20px; border-radius:20px;">Accept</button>
+                <button id="reject-call-btn" style="background:#FF3B30; color:white; border:none; padding:12px 24px; border-radius:20px; font-weight:600;">Decline</button>
+                <button id="accept-call-btn" style="background:#34C759; color:white; border:none; padding:12px 24px; border-radius:20px; font-weight:600;">Accept</button>
             </div>
         </div>
     </div>
+
+    <!-- Video Call View -->
     <div id="video-container">
         <video id="remoteVideo" autoplay playsinline></video>
         <video id="localVideo" autoplay muted playsinline></video>
-        <button id="end-call-btn" style="background:#FF3B30; color:white; border:none; padding:12px 30px; border-radius:20px; font-size:16px;">End Call</button>
+        <button id="end-video-btn" style="background:#FF3B30; color:white; border:none; padding:12px 30px; border-radius:20px; font-size:16px; font-weight:600;">End Video</button>
+    </div>
+
+    <!-- Voice Call View -->
+    <div id="voice-call-overlay">
+        <div class="voice-avatar">📞</div>
+        <div class="call-status-text" id="voice-caller-name">Voice Call</div>
+        <div class="call-duration" id="call-timer">Connected</div>
+        <button id="end-voice-btn" style="background:#FF3B30; color:white; border:none; padding:14px 36px; border-radius:30px; font-size:16px; font-weight:600; box-shadow:0 4px 15px rgba(255,59,48,0.4);">End Call</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -238,8 +277,10 @@
         let username = "";
         let userId = "";
         let currentTarget = "Public"; 
+        let currentTargetName = "Public Chat";
         let messageIdCounter = 0;
         let localFriends = []; 
+        let activeCallType = null; // 'audio' or 'video'
 
         const sendAudio = document.getElementById('sound-send');
         const receiveAudio = document.getElementById('sound-receive');
@@ -321,6 +362,8 @@
         if(savedBg) { 
             document.body.style.background = savedBg; 
             document.body.style.backgroundSize = 'cover'; 
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundRepeat = 'no-repeat';
             document.body.style.backgroundAttachment = 'fixed'; 
             if(!savedBg.includes('gradient')) document.body.style.animation = 'none'; 
         }
@@ -387,6 +430,7 @@
 
         function setChatTarget(id, name) {
             currentTarget = id;
+            currentTargetName = name;
             const titleEl = document.getElementById('current-chat-title');
             const container = document.getElementById('dynamic-island-container');
             if(titleEl) titleEl.textContent = (id === 'Public') ? "Public Chat" : `Chat with ${name}`;
@@ -433,6 +477,10 @@
             opt.addEventListener('click', function() {
                 const bg = this.getAttribute('data-bg'); 
                 document.body.style.background = bg; 
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundRepeat = 'no-repeat';
+                document.body.style.backgroundAttachment = 'fixed';
                 localStorage.setItem('chatsapp_bg', bg);
                 document.body.style.animation = bg.includes('gradient') ? 'gradientBG 15s ease infinite' : 'none';
             });
@@ -651,37 +699,73 @@
             appendMessage(data, playerHtml, "Audio Note");
         });
 
+        // 📞 WebRTC CALL HANDLING (VOICE & VIDEO)
         let localStream, peerConn, pendingOffer = null;
-        const videoCallBtn = document.getElementById('video-call-btn');
-        if(videoCallBtn) {
-            videoCallBtn.addEventListener('click', async () => {
-                if(!username) return;
-                if(currentTarget === 'Public') { alert("📹 Please select a Private Chat to use FaceTime!"); return; }
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true}); 
+
+        async function startCall(isVideo) {
+            if(!username) return;
+            if(currentTarget === 'Public') { 
+                alert("Please select a Private Chat to make a call!"); 
+                return; 
+            }
+            activeCallType = isVideo ? 'video' : 'audio';
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: isVideo, 
+                    audio: true
+                });
+
+                if(isVideo) {
                     const localVideo = document.getElementById('localVideo');
                     const videoContainer = document.getElementById('video-container');
                     if(localVideo) localVideo.srcObject = localStream; 
                     if(videoContainer) videoContainer.style.display = 'flex';
-                    
-                    peerConn = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
-                    localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
-                    peerConn.ontrack = e => { 
+                } else {
+                    document.getElementById('voice-caller-name').textContent = `In call with ${currentTargetName}`;
+                    document.getElementById('voice-call-overlay').style.display = 'flex';
+                }
+                
+                peerConn = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+                localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
+                
+                peerConn.ontrack = e => { 
+                    if(isVideo) {
                         const remoteVideo = document.getElementById('remoteVideo');
                         if(remoteVideo) remoteVideo.srcObject = e.streams[0]; 
-                    }; 
-                    peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', { sdp: e.candidate, to: currentTarget }); };
-                    
-                    const offer = await peerConn.createOffer(); 
-                    await peerConn.setLocalDescription(offer); 
-                    socket.emit('offer', { sdp: offer, to: currentTarget });
-                } catch(e){ alert("Cam/Mic error or permission denied"); }
-            });
+                    } else {
+                        const remoteAudio = document.getElementById('remoteAudio');
+                        if(remoteAudio) remoteAudio.srcObject = e.streams[0];
+                    }
+                }; 
+                
+                peerConn.onicecandidate = e => { 
+                    if(e.candidate) socket.emit('candidate', { sdp: e.candidate, to: currentTarget }); 
+                };
+                
+                const offer = await peerConn.createOffer(); 
+                await peerConn.setLocalDescription(offer); 
+                socket.emit('offer', { sdp: offer, to: currentTarget, isVideo: isVideo });
+            } catch(e){ 
+                alert("Permission error or mic/camera unavailable"); 
+            }
         }
+
+        // Button Listeners
+        const voiceCallBtn = document.getElementById('voice-call-btn');
+        if(voiceCallBtn) voiceCallBtn.addEventListener('click', () => startCall(false));
+
+        const videoCallBtn = document.getElementById('video-call-btn');
+        if(videoCallBtn) videoCallBtn.addEventListener('click', () => startCall(true));
         
         socket.on('offer', data => { 
-            pendingOffer = data.sdp; 
+            pendingOffer = data.sdp;
+            activeCallType = data.isVideo ? 'video' : 'audio';
+            
             const incModal = document.getElementById('incoming-call-modal');
+            const typeText = document.getElementById('incoming-call-type');
+            if(typeText) typeText.textContent = `Incoming ${data.isVideo ? '📹 Video' : '📞 Voice'} Call...`;
+            
             const ring = document.getElementById('ringtone');
             if(incModal) incModal.style.display = 'flex'; 
             if(ring) ring.play().catch(()=>{}); 
@@ -695,26 +779,47 @@
                 if(incModal) incModal.style.display = 'none'; 
                 if(ring) ring.pause();
                 
+                const isVideo = (activeCallType === 'video');
                 try {
-                    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true}); 
-                    const localVideo = document.getElementById('localVideo');
-                    const videoContainer = document.getElementById('video-container');
-                    if(localVideo) localVideo.srcObject = localStream; 
-                    if(videoContainer) videoContainer.style.display = 'flex';
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        video: isVideo, 
+                        audio: true
+                    });
+
+                    if(isVideo) {
+                        const localVideo = document.getElementById('localVideo');
+                        const videoContainer = document.getElementById('video-container');
+                        if(localVideo) localVideo.srcObject = localStream; 
+                        if(videoContainer) videoContainer.style.display = 'flex';
+                    } else {
+                        document.getElementById('voice-caller-name').textContent = `In call with ${currentTargetName}`;
+                        document.getElementById('voice-call-overlay').style.display = 'flex';
+                    }
                     
                     peerConn = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
                     localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
+                    
                     peerConn.ontrack = e => { 
-                        const remoteVideo = document.getElementById('remoteVideo');
-                        if(remoteVideo) remoteVideo.srcObject = e.streams[0]; 
+                        if(isVideo) {
+                            const remoteVideo = document.getElementById('remoteVideo');
+                            if(remoteVideo) remoteVideo.srcObject = e.streams[0]; 
+                        } else {
+                            const remoteAudio = document.getElementById('remoteAudio');
+                            if(remoteAudio) remoteAudio.srcObject = e.streams[0];
+                        }
                     }; 
-                    peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', { sdp: e.candidate, to: currentTarget }); };
+                    
+                    peerConn.onicecandidate = e => { 
+                        if(e.candidate) socket.emit('candidate', { sdp: e.candidate, to: currentTarget }); 
+                    };
                     
                     await peerConn.setRemoteDescription(new RTCSessionDescription(pendingOffer));
                     const ans = await peerConn.createAnswer(); 
                     await peerConn.setLocalDescription(ans); 
                     socket.emit('answer', { sdp: ans, to: currentTarget });
-                } catch(err){ alert("Call error"); }
+                } catch(err){ 
+                    alert("Unable to connect call"); 
+                }
             });
         }
         
@@ -733,18 +838,31 @@
         socket.on('answer', async data => { if(peerConn) await peerConn.setRemoteDescription(new RTCSessionDescription(data.sdp)); });
         socket.on('candidate', async data => { if(peerConn) try{await peerConn.addIceCandidate(new RTCIceCandidate(data.sdp));}catch(e){} });
         
-        const endCallBtn = document.getElementById('end-call-btn');
-        if(endCallBtn) endCallBtn.addEventListener('click', endCall);
+        const endVideoBtn = document.getElementById('end-video-btn');
+        if(endVideoBtn) endVideoBtn.addEventListener('click', endCall);
+
+        const endVoiceBtn = document.getElementById('end-voice-btn');
+        if(endVoiceBtn) endVoiceBtn.addEventListener('click', endCall);
         
         function endCall() { 
-            if(localStream) localStream.getTracks().forEach(t => t.stop()); 
-            if(peerConn) peerConn.close(); 
+            if(localStream) {
+                localStream.getTracks().forEach(t => t.stop()); 
+                localStream = null;
+            }
+            if(peerConn) {
+                peerConn.close(); 
+                peerConn = null;
+            }
             const videoContainer = document.getElementById('video-container');
+            const voiceOverlay = document.getElementById('voice-call-overlay');
             const incModal = document.getElementById('incoming-call-modal');
             const ring = document.getElementById('ringtone');
+            
             if(videoContainer) videoContainer.style.display = 'none'; 
+            if(voiceOverlay) voiceOverlay.style.display = 'none';
             if(incModal) incModal.style.display = 'none'; 
             if(ring) ring.pause(); 
+            activeCallType = null;
         }
     </script>
 </body>
