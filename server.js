@@ -10,11 +10,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 let registeredIDs = {}; // 6-digit ID -> Name
 let activeConnections = {}; // 6-digit ID -> Socket ID
-let socketToId = {}; // Socket ID -> 6-digit ID
+let socketToId = {};  // Socket ID -> 6-digit ID
 
 io.on('connection', (socket) => {
     
-    // Register VIP ID
     socket.on('register_user', (data, callback) => {
         const { id, name } = data;
         if (registeredIDs[id] && registeredIDs[id] !== name) {
@@ -27,7 +26,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Search Friend via 6-digit ID
     socket.on('find_user', (targetId, callback) => {
         if (activeConnections[targetId] && targetId !== socketToId[socket.id]) {
             callback({ success: true, name: registeredIDs[targetId], id: targetId });
@@ -38,19 +36,18 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Universal message routing system
     const routeData = (eventName, data) => {
-        data.from_id = socketToId[socket.id]; // Sender's ID attached
-        data.name = registeredIDs[data.from_id]; // Sender's Name attached
+        data.from_id = socketToId[socket.id]; 
+        data.name = registeredIDs[data.from_id]; 
 
         if (data.to && data.to !== 'Public') {
             const targetSocket = activeConnections[data.to];
             if (targetSocket) {
-                io.to(targetSocket).emit(eventName, data); // Send to receiver
+                io.to(targetSocket).emit(eventName, data); 
             }
-            socket.emit(eventName, data); // Send back to self
+            socket.emit(eventName, data); 
         } else {
-            io.emit(eventName, data); // Broadcast to Public
+            io.emit(eventName, data); 
         }
     };
 
@@ -60,10 +57,8 @@ io.on('connection', (socket) => {
     
     socket.on('typing', data => routeData('typing', data));
     socket.on('stop_typing', data => routeData('stop_typing', data));
-    
-    socket.on('reaction', data => io.emit('reaction', data)); // Simplified for now
+    socket.on('reaction', data => io.emit('reaction', data));
 
-    // WebRTC Calls with Privacy Routing
     socket.on('offer', data => routeData('offer', data));
     socket.on('answer', data => routeData('answer', data));
     socket.on('candidate', data => routeData('candidate', data));
