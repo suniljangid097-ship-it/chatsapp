@@ -8,28 +8,43 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Online users track karne ke liye
-let onlineUsers = {}; 
+let onlineUsers = {}; // Tracks currently online users
+let registeredIDs = {}; // "123456" -> "Rahul" (Tracks claimed VIP IDs)
 
 io.on('connection', (socket) => {
     
-    // Naya banda aane par
-    socket.on('user_join', (name) => {
-        onlineUsers[socket.id] = name;
-        io.emit('update_users', onlineUsers); // Sabko list bhejo
-    });
-
-    // Chat Message (Public & Private)
-    socket.on('chat message', (data) => {
-        if (data.to && data.to !== 'Public') {
-            io.to(data.to).emit('chat message', data); // Jisko bheja use milega
-            socket.emit('chat message', data); // Bhejne wale ko bhi dikhega
+    // Premium VIP Login/Registration
+    socket.on('register_user', (data, callback) => {
+        const { id, name } = data;
+        
+        if (registeredIDs[id]) {
+            if (registeredIDs[id] === name) {
+                // Returning valid user
+                onlineUsers[socket.id] = { id, name };
+                io.emit('update_users', onlineUsers);
+                callback({ success: true, message: "Welcome back!" });
+            } else {
+                // ID is already taken by someone else
+                callback({ success: false, message: "❌ This Premium ID is already taken!" });
+            }
         } else {
-            io.emit('chat message', data); // Public Chat
+            // New user registration
+            registeredIDs[id] = name;
+            onlineUsers[socket.id] = { id, name };
+            io.emit('update_users', onlineUsers);
+            callback({ success: true, message: "VIP ID Registered!" });
         }
     });
 
-    // Voice Message
+    socket.on('chat message', (data) => {
+        if (data.to && data.to !== 'Public') {
+            io.to(data.to).emit('chat message', data);
+            socket.emit('chat message', data);
+        } else {
+            io.emit('chat message', data);
+        }
+    });
+
     socket.on('voice message', (data) => {
         if (data.to && data.to !== 'Public') {
             io.to(data.to).emit('voice message', data);
@@ -39,7 +54,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Image Message
     socket.on('image message', (data) => {
         if (data.to && data.to !== 'Public') {
             io.to(data.to).emit('image message', data);
@@ -49,27 +63,15 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Typing Status
-    socket.on('typing', (data) => {
-        socket.broadcast.emit('typing', data);
-    });
+    socket.on('typing', (data) => socket.broadcast.emit('typing', data));
+    socket.on('stop_typing', (data) => socket.broadcast.emit('stop_typing', data));
+    socket.on('reaction', (data) => io.emit('reaction', data));
 
-    socket.on('stop_typing', (data) => {
-        socket.broadcast.emit('stop_typing', data);
-    });
-
-    // Emoji Reaction
-    socket.on('reaction', (data) => {
-        io.emit('reaction', data);
-    });
-
-    // WebRTC Video Call Signaling 
     socket.on('offer', (data) => socket.broadcast.emit('offer', data));
     socket.on('answer', (data) => socket.broadcast.emit('answer', data));
     socket.on('candidate', (data) => socket.broadcast.emit('candidate', data));
     socket.on('call_rejected', () => socket.broadcast.emit('call_rejected'));
 
-    // Disconnect
     socket.on('disconnect', () => {
         delete onlineUsers[socket.id];
         io.emit('update_users', onlineUsers);
