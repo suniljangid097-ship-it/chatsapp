@@ -1,68 +1,171 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chatsapp - Liquid Glass</title>
+    <title>Chatsapp - Apple Glass</title>
     <style>
-        /* Futuristic Background */
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: #e1e8ed; }
-        header { background: rgba(31, 44, 52, 0.4); backdrop-filter: blur(10px); color: #00ffcc; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        #status { background: rgba(0,0,0,0.3); color: #ffcc00; padding: 4px; text-align: center; font-size: 11px; }
-        #chat-window { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-        
-        /* 💎 LIQUID GLASS THEME MESSAGES 💎 */
-        .message { 
-            padding: 10px 14px; 
-            border-radius: 18px; 
-            max-width: 85%; 
-            word-wrap: break-word; 
-            position: relative; 
-            font-size: 15px; 
-            color: #fff;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+        /* 🍎 iPhone Style Premium Mesh Background */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100dvh; 
+            overflow: hidden; 
+            background-color: #000000;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(74, 0, 224, 0.6) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(142, 45, 226, 0.6) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 0, 153, 0.4) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(0, 212, 255, 0.4) 0px, transparent 50%);
+            background-size: cover;
+            color: #ffffff;
+        }
+
+        /* 💎 APPLE SECRET GLASS EFFECT (High Blur + Saturation) */
+        .apple-glass {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         }
+
+        header { 
+            padding: 15px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-size: 20px; 
+            font-weight: 600;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        #status { 
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #ffcc00; 
+            padding: 4px; 
+            text-align: center; 
+            font-size: 11px; 
+            border-radius: 12px;
+            margin: 0 15px;
+        }
+
+        #chat-window { 
+            flex: 1; 
+            padding: 20px 15px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            scroll-behavior: smooth; 
+        }
+        
+        /* iMessage Style Bubbles */
+        .message { 
+            padding: 12px 16px; 
+            border-radius: 22px; 
+            max-width: 80%; 
+            word-wrap: break-word; 
+            position: relative; 
+            font-size: 16px; 
+            line-height: 1.4;
+            color: #fff;
+            backdrop-filter: blur(20px) saturate(150%);
+            -webkit-backdrop-filter: blur(20px) saturate(150%);
+            border: 0.5px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
         .message.sent { 
             margin-left: auto; 
-            background: rgba(0, 200, 150, 0.25); 
-            border: 1px solid rgba(0, 255, 170, 0.4);
-            border-top-right-radius: 4px; 
+            /* Apple iMessage Blue Tint */
+            background: rgba(10, 132, 255, 0.35); 
+            border-bottom-right-radius: 4px; 
         }
+        
         .message.received { 
             margin-right: auto; 
-            background: rgba(255, 255, 255, 0.1); 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-top-left-radius: 4px; 
+            /* Apple Dark Mode Gray Tint */
+            background: rgba(255, 255, 255, 0.15); 
+            border-bottom-left-radius: 4px; 
         }
 
-        .message .username { font-weight: bold; color: #00ffcc; font-size: 11px; margin-bottom: 4px; display: block; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .message img { width: 100%; border-radius: 12px; display: block; margin-top: 5px; border: 1px solid rgba(255,255,255,0.2); }
+        .message .username { font-weight: 600; font-size: 11px; margin-bottom: 5px; display: block; opacity: 0.7; letter-spacing: 0.3px; }
+        .message img { width: 100%; border-radius: 14px; display: block; margin-top: 8px; border: 0.5px solid rgba(255,255,255,0.2); }
 
-        #form { display: flex; background: rgba(31, 44, 52, 0.4); backdrop-filter: blur(10px); padding: 8px 10px; gap: 8px; align-items: center; padding-bottom: env(safe-area-inset-bottom, 8px); border-top: 1px solid rgba(255,255,255,0.1); }
-        #input { flex: 1; padding: 12px 15px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; border-radius: 25px; outline: none; font-size: 15px; backdrop-filter: blur(5px); }
-        #input::placeholder { color: #aaa; }
-        .icon-btn { background: rgba(0, 255, 204, 0.2); border: 1px solid rgba(0, 255, 204, 0.4); color: white; width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; flex-shrink: 0; backdrop-filter: blur(5px); }
-        .icon-btn:disabled { background: rgba(255,255,255,0.05); cursor: not-allowed; opacity: 0.5; border: none; }
-        #record-btn.recording { background: rgba(255, 0, 50, 0.4); border-color: red; animation: pulse 1s infinite; }
-        #cancel-record-btn { background: rgba(255,0,0,0.3); display: none; }
-        #timer-display { display: none; flex: 1; text-align: center; color: #ff3366; font-weight: bold; font-size: 18px; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        /* Input Area Apple Style */
+        #form { 
+            display: flex; 
+            padding: 12px 15px; 
+            gap: 10px; 
+            align-items: center; 
+            padding-bottom: env(safe-area-inset-bottom, 15px);
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+            border-bottom: none;
+        }
 
-        /* Call Buttons & Layout */
-        .call-buttons { display: flex; gap: 10px; }
-        .header-btn { background: rgba(0, 255, 204, 0.2); border: 1px solid rgba(0, 255, 204, 0.4); color: white; padding: 8px; border-radius: 50%; font-size: 15px; display: flex; justify-content: center; align-items: center; width: 35px; height: 35px; backdrop-filter: blur(5px); }
+        #input { 
+            flex: 1; 
+            padding: 12px 18px; 
+            border: 0.5px solid rgba(255,255,255,0.2); 
+            background: rgba(0,0,0,0.2); 
+            color: white; 
+            border-radius: 30px; 
+            outline: none; 
+            font-size: 16px; 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        #input::placeholder { color: rgba(255,255,255,0.6); }
+
+        .icon-btn { 
+            background: rgba(255, 255, 255, 0.15); 
+            border: 0.5px solid rgba(255, 255, 255, 0.2); 
+            color: white; 
+            width: 42px; 
+            height: 42px; 
+            border-radius: 50%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-size: 18px; 
+            cursor: pointer; 
+            flex-shrink: 0; 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            transition: all 0.2s ease;
+        }
+        .icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.3); }
+        .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         
-        #video-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
-        .video-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; align-items: center; }
-        video { width: 90vw; height: 35vh; background: #111; border-radius: 20px; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); }
+        #record-btn.recording { background: rgba(255, 59, 48, 0.6); border-color: #ff3b30; animation: pulse 1s infinite; }
+        #cancel-record-btn { background: rgba(255,59,48,0.4); display: none; }
+        #timer-display { display: none; flex: 1; text-align: center; color: #ff3b30; font-weight: 600; font-size: 18px; }
         
-        /* Incoming Call Popup */
-        #incoming-call-modal { display: none; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 30, 40, 0.85); backdrop-filter: blur(15px); padding: 25px; border-radius: 20px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center; color: white; width: 80%; max-width: 300px; border: 1px solid rgba(0,255,204,0.3); }
-        .call-btn-group { display: flex; justify-content: space-around; margin-top: 20px; }
-        .btn-accept { background: rgba(0, 255, 100, 0.3); border: 1px solid #00ff66; color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
-        .btn-reject { background: rgba(255, 0, 50, 0.3); border: 1px solid #ff0033; color: white; padding: 10px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+
+        /* Call Buttons & Modal Apple Glass */
+        .call-buttons { display: flex; gap: 12px; }
+        .header-btn { background: rgba(255, 255, 255, 0.15); border: 0.5px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 50%; font-size: 16px; display: flex; justify-content: center; align-items: center; width: 40px; height: 40px; }
+        
+        #video-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.6); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; gap: 20px; backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
+        .video-grid { display: flex; flex-direction: column; gap: 20px; width: 100%; align-items: center; }
+        video { width: 90vw; height: 35vh; background: rgba(255,255,255,0.05); border-radius: 24px; object-fit: cover; border: 0.5px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
+        #incoming-call-modal { display: none; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); padding: 30px 25px; border-radius: 28px; z-index: 10000; text-align: center; color: white; width: 80%; max-width: 320px; }
+        .call-btn-group { display: flex; justify-content: space-around; margin-top: 25px; }
+        .btn-accept { background: rgba(52, 199, 89, 0.4); border: 0.5px solid #34c759; color: white; padding: 12px 25px; border-radius: 30px; font-weight: 600; cursor: pointer; font-size: 15px; }
+        .btn-reject { background: rgba(255, 59, 48, 0.4); border: 0.5px solid #ff3b30; color: white; padding: 12px 25px; border-radius: 30px; font-weight: 600; cursor: pointer; font-size: 15px; }
     </style>
 </head>
 <body>
@@ -70,20 +173,20 @@
     <audio id="incoming-ring" loop src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3"></audio>
     <audio id="outgoing-ring" loop src="https://assets.mixkit.co/active_storage/sfx/2954/2954-preview.mp3"></audio>
 
-    <header>
-        <span>Chatsapp</span>
+    <header class="apple-glass">
+        <span>Chats</span>
         <div class="call-buttons">
-            <button class="header-btn" id="voice-call-btn" disabled>📞</button>
-            <button class="header-btn" id="video-call-btn" disabled>📹</button>
+            <button class="header-btn apple-glass" id="voice-call-btn" disabled>📞</button>
+            <button class="header-btn apple-glass" id="video-call-btn" disabled>📹</button>
         </div>
     </header>
     <div id="status">Connecting...</div>
 
     <div id="chat-window"></div>
 
-    <div id="incoming-call-modal">
-        <h3 style="margin: 0 0 10px 0;" id="incoming-call-title">📹 Video Call</h3>
-        <p style="margin: 0; font-size: 14px; color: #00ffcc;">Someone is calling you...</p>
+    <div id="incoming-call-modal" class="apple-glass">
+        <h3 style="margin: 0 0 10px 0; font-weight: 600;" id="incoming-call-title">📹 Video Call</h3>
+        <p style="margin: 0; font-size: 15px; opacity: 0.7;">Someone is calling you...</p>
         <div class="call-btn-group">
             <button class="btn-reject" id="reject-call-btn">Decline</button>
             <button class="btn-accept" id="accept-call-btn">Accept</button>
@@ -91,23 +194,23 @@
     </div>
 
     <div id="video-container">
-        <h2 id="voice-only-text" style="display: none; color: #00ffcc; margin-bottom: 20px;">📞 Voice Call Active</h2>
+        <h2 id="voice-only-text" style="display: none; color: #fff; margin-bottom: 20px; font-weight: 500;">📞 Voice Call Active</h2>
         <div class="video-grid" id="video-streams">
             <div>
-                <p style="text-align:center; font-size:12px; margin:2px;">Remote</p>
+                <p style="text-align:center; font-size:12px; margin:2px; opacity:0.6;">Remote</p>
                 <video id="remoteVideo" autoplay playsinline></video>
             </div>
             <div>
-                <p style="text-align:center; font-size:12px; margin:2px;">You</p>
+                <p style="text-align:center; font-size:12px; margin:2px; opacity:0.6;">You</p>
                 <video id="localVideo" autoplay muted playsinline></video>
             </div>
         </div>
-        <button class="btn-reject" id="end-call-btn" style="margin-top: 20px; padding: 15px 40px; font-size: 16px;">End Call</button>
+        <button class="btn-reject apple-glass" id="end-call-btn" style="margin-top: 30px; padding: 15px 40px; font-size: 16px;">End Call</button>
     </div>
 
-    <form id="form">
+    <form id="form" class="apple-glass">
         <button type="button" class="icon-btn" id="img-btn" disabled>📷</button>
-        <input id="input" autocomplete="off" placeholder="Message..." required disabled />
+        <input id="input" autocomplete="off" placeholder="iMessage..." required disabled />
         <span id="timer-display">00:00</span>
         <button type="button" class="icon-btn" id="cancel-record-btn">🗑️</button>
         <button type="button" class="icon-btn" id="record-btn" disabled>🎤</button>
@@ -148,7 +251,6 @@
             triggerVibration(); 
         }
 
-        // --- Chat & Media Send Logic ---
         document.getElementById('form').addEventListener('submit', (e) => {
             e.preventDefault();
             if (input.value && socket.connected) {
@@ -180,7 +282,6 @@
         });
         socket.on('image message', (data) => appendMessage(data, `<img src="${data.image}">`, "Photo"));
 
-        // --- Voice Record Logic ---
         let mediaRecorder, audioChunks = [], isRecording = false, recordTimer, secondsCount = 0;
         const recordBtn = document.getElementById('record-btn'), cancelBtn = document.getElementById('cancel-record-btn'), timerDisplay = document.getElementById('timer-display'), imgBtn = document.getElementById('img-btn'), sendBtn = document.getElementById('send-btn');
 
@@ -219,14 +320,13 @@
             recordBtn.textContent = '🎤'; recordBtn.classList.remove('recording');
         }
         socket.on('voice message', (data) => {
-            const audio = document.createElement('audio'); audio.controls = true; audio.src = data.audio; audio.style.width = '100%'; audio.style.marginTop = '5px';
+            const audio = document.createElement('audio'); audio.controls = true; audio.src = data.audio; audio.style.width = '100%'; audio.style.marginTop = '8px';
             const item = document.createElement('div'); item.className = `message ${data.name === username ? 'sent' : 'received'}`;
             item.innerHTML = `<span class="username">${data.name} (Voice Note)</span>`; item.appendChild(audio);
             chatWindow.appendChild(item); chatWindow.scrollTop = chatWindow.scrollHeight;
             triggerVibration(); 
         });
 
-        // --- 4. ADVANCED CALLING (VIDEO + VOICE + BOTH SIDE HANGUP) ---
         let localStream, remoteStream, peerConnection, pendingOffer = null, isVideoCall = true;
         const servers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
         const videoContainer = document.getElementById('video-container');
@@ -239,9 +339,7 @@
             outgoingRing.pause(); outgoingRing.currentTime = 0;
         }
 
-        // MAKE VIDEO CALL
         document.getElementById('video-call-btn').addEventListener('click', () => startCall(true));
-        // MAKE VOICE CALL
         document.getElementById('voice-call-btn').addEventListener('click', () => startCall(false));
 
         async function startCall(videoEnabled) {
@@ -251,8 +349,7 @@
                 setupCallUI(isVideoCall);
                 document.getElementById('localVideo').srcObject = localStream;
                 videoContainer.style.display = 'flex';
-                
-                outgoingRing.play().catch(e=>console.log("Audio play policy", e)); // Outgoing Ring bajegi
+                outgoingRing.play().catch(e=>{}); 
                 
                 createPeerConnection();
                 localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
@@ -280,17 +377,15 @@
             }
         }
 
-        // RECEIVE CALL
         socket.on('offer', (data) => {
             pendingOffer = data.sdp;
             isVideoCall = data.type === 'video';
             document.getElementById('incoming-call-title').innerText = isVideoCall ? '📹 Video Call' : '📞 Voice Call';
             incomingModal.style.display = 'block';
-            incomingRing.play().catch(e=>console.log("Audio block", e)); // Incoming ring bajegi
+            incomingRing.play().catch(e=>{}); 
             triggerVibration(); 
         });
 
-        // ACCEPT CALL
         document.getElementById('accept-call-btn').addEventListener('click', async () => {
             incomingModal.style.display = 'none';
             stopRingtones();
@@ -310,7 +405,6 @@
             pendingOffer = null;
         });
 
-        // REJECT CALL
         document.getElementById('reject-call-btn').addEventListener('click', () => {
             incomingModal.style.display = 'none';
             stopRingtones();
@@ -324,9 +418,8 @@
             forceEndCall();
         });
 
-        // CALL ANSWERED
         socket.on('answer', async (answer) => {
-            stopRingtones(); // Uthate hi outgoing ring band
+            stopRingtones(); 
             if (peerConnection && !peerConnection.currentRemoteDescription) 
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
         });
@@ -335,14 +428,13 @@
             if (peerConnection) try { await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)); } catch (e) {}
         });
 
-        // END CALL (Donu side)
         document.getElementById('end-call-btn').addEventListener('click', () => {
             forceEndCall();
-            socket.emit('end_call'); // Server ko bol ki aage wale ki call bhi cut kar
+            socket.emit('end_call'); 
         });
 
         socket.on('end_call', () => {
-            forceEndCall(); // Samne wale ne kaat di, teri call band
+            forceEndCall(); 
         });
 
         function forceEndCall() {
