@@ -15,11 +15,16 @@ let offlineMessageQueue = {};// 6-digit ID -> Array of missed messages
 
 io.on('connection', (socket) => {
     
-    // Register VIP ID & Deliver Offline Messages
+    // Register VIP ID & Deliver Offline Messages Safely
     socket.on('register_user', (data, callback) => {
+        if (!data || !data.id || !data.name) {
+            if (typeof callback === 'function') callback({ success: false, message: "Invalid data" });
+            return;
+        }
+        
         const { id, name } = data;
         if (registeredIDs[id] && registeredIDs[id] !== name) {
-            callback({ success: false, message: "❌ This Premium ID is already taken!" });
+            if (typeof callback === 'function') callback({ success: false, message: "❌ This Premium ID is already taken!" });
             return;
         }
         
@@ -27,26 +32,26 @@ io.on('connection', (socket) => {
         activeConnections[id] = socket.id;
         socketToId[socket.id] = id;
         
-        callback({ success: true, message: "VIP ID Registered!" });
+        if (typeof callback === 'function') callback({ success: true, message: "VIP ID Registered!" });
 
-        // Deliver pending offline messages right after login
+        // Deliver pending offline messages after short delay
         if (offlineMessageQueue[id] && offlineMessageQueue[id].length > 0) {
             setTimeout(() => {
                 offlineMessageQueue[id].forEach(msg => {
                     socket.emit('offline_notification', msg);
                 });
-                offlineMessageQueue[id] = []; // Clear queue
-            }, 1000);
+                offlineMessageQueue[id] = []; 
+            }, 800);
         }
     });
 
     socket.on('find_user', (targetId, callback) => {
         if (registeredIDs[targetId] && targetId !== socketToId[socket.id]) {
-            callback({ success: true, name: registeredIDs[targetId], id: targetId });
+            if (typeof callback === 'function') callback({ success: true, name: registeredIDs[targetId], id: targetId });
         } else if (targetId === socketToId[socket.id]) {
-            callback({ success: false, message: "You cannot chat with yourself." });
+            if (typeof callback === 'function') callback({ success: false, message: "You cannot chat with yourself." });
         } else {
-            callback({ success: false, message: "ID does not exist." });
+            if (typeof callback === 'function') callback({ success: false, message: "User is offline or ID is wrong." });
         }
     });
 
@@ -62,18 +67,17 @@ io.on('connection', (socket) => {
             if (targetSocketId) {
                 io.to(targetSocketId).emit(eventName, data);
             } else {
-                // Save to offline queue if recipient is offline
                 if (!offlineMessageQueue[data.to]) {
                     offlineMessageQueue[data.to] = [];
                 }
                 offlineMessageQueue[data.to].push({
                     from_name: data.name,
                     from_id: senderId,
-                    text: data.text || 'Sent an attachment',
+                    text: data.text || 'Media / Audio Note',
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
             }
-            socket.emit(eventName, data); // Echo back to sender
+            socket.emit(eventName, data);
         } else {
             io.emit(eventName, data);
         }
@@ -87,10 +91,11 @@ io.on('connection', (socket) => {
     socket.on('stop_typing', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('stop_typing', data); });
     socket.on('reaction', data => io.emit('reaction', data));
 
-    socket.on('offer', data => { if(activeConnections[data.to]) io.to(activeConnections[data.to]).emit('offer', data); });
-    socket.on('answer', data => { if(activeConnections[data.to]) io.to(activeConnections[data.to]).emit('answer', data); });
-    socket.on('candidate', data => { if(activeConnections[data.to]) io.to(activeConnections[data.to]).emit('candidate', data); });
-    socket.on('call_rejected', data => { if(activeConnections[data.to]) io.to(activeConnections[data.to]).emit('call_rejected', data); });
+    // WebRTC Signaling
+    socket.on('offer', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('offer', data); });
+    socket.on('answer', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('answer', data); });
+    socket.on('candidate', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('candidate', data); });
+    socket.on('call_rejected', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('call_rejected', data); });
 
     socket.on('disconnect', () => {
         const id = socketToId[socket.id];
