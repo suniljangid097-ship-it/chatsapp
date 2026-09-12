@@ -10,7 +10,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #ffffff; transition: background 0.5s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* 🎬 APPLE EVENT STYLE SPLASH SCREEN (Wapas le aaye hain!) */
+        /* 🎬 APPLE EVENT STYLE SPLASH SCREEN */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
             background: #000000; z-index: 999999;
@@ -94,6 +94,11 @@
         #video-container { display: none; position: fixed; top:0; left:0; width:100vw; height:100dvh; background:rgba(0,0,0,0.8); z-index:9999; flex-direction:column; justify-content:center; align-items:center; }
         video { width: 85vw; height: 35vh; background: rgba(0,0,0,0.5); border-radius: 20px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px;}
         .header-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(10px); text-shadow: none; cursor:pointer;}
+        
+        /* Profile Section inside Settings */
+        .profile-card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); text-align: left; }
+        .profile-card p { margin: 5px 0; font-size: 14px; color: rgba(255,255,255,0.9); text-shadow: none; }
+
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
@@ -103,7 +108,6 @@
     <audio id="sound-receive" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
     <audio id="ringtone" loop src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3"></audio>
 
-    <!-- 🎬 CINEMATIC SPLASH SCREEN (Safe & Bulletproof timer) -->
     <div id="splash-screen">
         <div class="splash-text-container">
             <span class="brand-main">Chatsapp</span>
@@ -137,10 +141,19 @@
         </div>
     </div>
 
-    <!-- Wallpapers -->
+    <!-- Settings & Profile Modal -->
     <div id="settings-modal-overlay" class="modal-overlay" style="display: none;">
         <div class="modal-box glass">
-            <h2 style="margin: 0;">Settings</h2>
+            <h2 style="margin: 0 0 15px 0;">Settings</h2>
+            
+            <!-- Profile Card -->
+            <div class="profile-card">
+                <p>👤 <b>Name:</b> <span id="profile-display-name">...</span></p>
+                <p>🆔 <b>VIP ID:</b> <span id="profile-display-id">...</span></p>
+                <button class="header-btn" style="width:100%; margin-top:10px; background:rgba(0,122,255,0.3);" onclick="openEditProfile()">Edit Profile</button>
+            </div>
+
+            <p style="font-size: 13px; color: rgba(255,255,255,0.9); margin-top: 15px;">Choose Wallpaper</p>
             <div class="wallpaper-grid">
                 <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400')"></div>
                 <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=400')"></div>
@@ -203,7 +216,6 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // 🎬 Bulletproof Splash Screen Timer (Never freezes)
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             if(splash) {
@@ -229,6 +241,7 @@
                 socket.emit('register_user', data, (response) => {
                     if(response.success) {
                         userId = data.id; username = data.name;
+                        updateProfileDisplay();
                         document.getElementById('name-modal-overlay').style.display = 'none';
                     } else {
                         localStorage.removeItem('chatsapp_auth');
@@ -237,6 +250,19 @@
                 });
             }
         });
+
+        function updateProfileDisplay() {
+            document.getElementById('profile-display-name').textContent = username;
+            document.getElementById('profile-display-id').textContent = userId;
+            document.getElementById('custom-id-input').value = userId;
+            document.getElementById('custom-name-input').value = username;
+        }
+
+        function openEditProfile() {
+            document.getElementById('settings-modal-overlay').style.display = 'none';
+            document.getElementById('auth-error').textContent = "";
+            document.getElementById('name-modal-overlay').style.display = 'flex';
+        }
         
         const savedBg = localStorage.getItem('chatsapp_bg');
         if(savedBg) { document.body.style.background = savedBg; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundAttachment = 'fixed'; if(!savedBg.includes('gradient')) document.body.style.animation = 'none'; }
@@ -306,6 +332,7 @@
             socket.emit('register_user', { id: idVal, name: nameVal }, (response) => {
                 if(response.success) {
                     userId = idVal; username = nameVal;
+                    updateProfileDisplay();
                     localStorage.setItem('chatsapp_auth', JSON.stringify({ id: idVal, name: nameVal }));
                     document.getElementById('name-modal-overlay').style.display = 'none';
                 } else { document.getElementById('auth-error').textContent = response.message; }
