@@ -19,13 +19,24 @@
 
         .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
 
+        /* 🏝️ DYNAMIC ISLAND WITH NOTIFICATION SPLIT */
         #dynamic-island { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); height: 35px; min-width: 150px; border-radius: 20px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; z-index: 100; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; }
         #dynamic-island.expanded { height: 250px; width: 85%; max-width: 350px; border-radius: 30px; background: rgba(255, 255, 255, 0.15); }
+        
+        /* Split Notification State */
+        #dynamic-island.notification-split { width: 90%; max-width: 340px; height: 50px; border-radius: 25px; background: rgba(20, 20, 20, 0.85); border: 1px solid rgba(255,255,255,0.3); animation: pulseAlert 1.2s infinite; }
+        @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); } }
+
         .island-title { font-size: 14px; font-weight: 600; margin-top: 8px; text-shadow: none; display: flex; align-items: center; gap: 5px; }
         .online-dot { width: 8px; height: 8px; background: #34C759; border-radius: 50%; box-shadow: 0 0 8px #34C759; }
         
         #users-list { display: none; width: 100%; padding: 15px; box-sizing: border-box; overflow-y: auto; text-align: left; text-shadow: none;}
         #dynamic-island.expanded #users-list { display: block; }
+        
+        #island-notification-content { display: none; width: 100%; height: 100%; padding: 8px 15px; box-sizing: border-box; justify-content: space-between; align-items: center; text-shadow: none; }
+        #dynamic-island.notification-split #island-notification-content { display: flex; }
+        #dynamic-island.notification-split .island-title { display: none; }
+
         .user-row { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 15px; cursor: pointer; transition: background 0.2s; border-radius: 8px; display: flex; justify-content: space-between;}
         .user-row:hover { background: rgba(255,255,255,0.2); }
         .user-row.active { background: rgba(0, 122, 255, 0.4); font-weight: bold; }
@@ -129,12 +140,15 @@
         </div>
     </div>
 
-    <!-- Dynamic Island -->
+    <!-- Dynamic Island with Split Notification -->
     <div id="dynamic-island" class="glass">
         <div class="island-title"><span class="online-dot"></span> <span id="current-chat-title">Public Chat</span> ▾</div>
+        <div id="island-notification-content" onclick="handleNotificationClick()">
+            <div style="font-size: 13px; font-weight: 600; color: #a5b4fc;" id="notif-sender">New Message</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.8); max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="notif-preview">Tap to view</div>
+        </div>
         <div id="users-list">
             <div class="user-row active" id="tab-Public" onclick="setChatTarget('Public', 'Public Chat')">🌍 Public Chat</div>
-            <!-- Dynamic local friends will appear here -->
             <div class="add-chat-btn" onclick="openAddFriendModal()">➕ Add Private Chat</div>
         </div>
     </div>
@@ -186,7 +200,8 @@
         let userId = "";
         let currentTarget = "Public"; 
         let messageIdCounter = 0;
-        let localFriends = []; // Stores IDs you are chatting with
+        let localFriends = []; 
+        let pendingNotificationChat = null; // Store sender info for split island click
 
         const sendAudio = document.getElementById('sound-send');
         const receiveAudio = document.getElementById('sound-receive');
@@ -213,12 +228,11 @@
 
         const dynamicIsland = document.getElementById('dynamic-island');
         dynamicIsland.addEventListener('click', (e) => {
-            if(!e.target.classList.contains('user-row') && !e.target.classList.contains('user-id-badge') && !e.target.classList.contains('add-chat-btn')) {
+            if(!e.target.classList.contains('user-row') && !e.target.classList.contains('user-id-badge') && !e.target.classList.contains('add-chat-btn') && !e.target.closest('#island-notification-content')) {
                 dynamicIsland.classList.toggle('expanded');
             }
         });
 
-        // Search Friend System
         function openAddFriendModal() {
             dynamicIsland.classList.remove('expanded');
             document.getElementById('add-friend-overlay').style.display = 'flex';
@@ -259,16 +273,25 @@
             currentTarget = id;
             document.getElementById('current-chat-title').textContent = (id === 'Public') ? "Public Chat" : `Chat with ${name}`;
             dynamicIsland.classList.remove('expanded');
+            dynamicIsland.classList.remove('notification-split'); // Clear split notification
             
-            // UI Tab switch
             document.querySelectorAll('.user-row').forEach(row => row.classList.remove('active'));
-            document.getElementById(`tab-${id}`).classList.add('active');
+            const tabElem = document.getElementById(`tab-${id}`);
+            if(tabElem) tabElem.classList.add('active');
 
-            // Hide/Show correct messages
             document.querySelectorAll('.message-wrapper').forEach(msg => {
                 msg.style.display = (msg.getAttribute('data-chat-id') === currentTarget) ? 'flex' : 'none';
             });
             document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+        }
+
+        // Click on Split Notification Island to jump straight to chat
+        function handleNotificationClick() {
+            if (pendingNotificationChat) {
+                addPrivateChatTab(pendingNotificationChat.id, pendingNotificationChat.name);
+                setChatTarget(pendingNotificationChat.id, pendingNotificationChat.name);
+                pendingNotificationChat = null;
+            }
         }
 
         document.getElementById('custom-name-form').addEventListener('submit', (e) => {
@@ -305,10 +328,8 @@
         function triggerVibration() { if (navigator.vibrate) navigator.vibrate(40); }
 
         function appendMessage(data, contentHtml, typeLabel = "") {
-            // Determine which chat tab this message belongs to
             const chatId = (data.to === 'Public') ? 'Public' : (data.from_id === userId ? data.to : data.from_id);
             
-            // If message received from a new private friend, auto-add their tab
             if(chatId !== 'Public' && chatId !== userId && !localFriends.includes(chatId)) {
                 addPrivateChatTab(data.from_id, data.name);
             }
@@ -318,7 +339,17 @@
             wrapper.setAttribute('data-chat-id', chatId);
             wrapper.id = 'msg-' + (++messageIdCounter);
             
-            if (chatId !== currentTarget) wrapper.style.display = 'none';
+            if (chatId !== currentTarget) {
+                wrapper.style.display = 'none';
+                // Trigger Apple-style Dynamic Island Split Notification if viewing another chat/tab
+                if (data.from_id !== userId) {
+                    pendingNotificationChat = { id: data.from_id, name: data.name };
+                    document.getElementById('notif-sender').textContent = data.name;
+                    document.getElementById('notif-preview').textContent = data.text || (typeLabel ? `[${typeLabel}]` : "New message");
+                    dynamicIsland.classList.add('notification-split');
+                    dynamicIsland.classList.remove('expanded');
+                }
+            }
 
             const msgBubble = document.createElement('div'); msgBubble.className = 'message';
             msgBubble.addEventListener('dblclick', () => { socket.emit('reaction', { msgId: wrapper.id, emoji: '❤️' }); triggerVibration(); });
@@ -329,7 +360,13 @@
             
             document.getElementById('chat-window').appendChild(wrapper); 
             if(chatId === currentTarget) document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-            if (data.from_id === userId) { sendAudio.play().catch(()=>{}); } else { receiveAudio.play().catch(()=>{}); triggerVibration(); }
+            
+            if (data.from_id === userId) { 
+                sendAudio.play().catch(()=>{}); 
+            } else { 
+                receiveAudio.play().catch(()=>{}); 
+                triggerVibration(); 
+            }
         }
 
         socket.on('reaction', (data) => { const wrapper = document.getElementById(data.msgId); if(wrapper) { const rxDiv = wrapper.querySelector('.reaction'); rxDiv.textContent = data.emoji; rxDiv.style.display = 'block'; } });
@@ -368,7 +405,6 @@
         });
         socket.on('voice message', (data) => { const a = document.createElement('audio'); a.controls=true; a.src=data.audio; a.style.width='100%'; appendMessage(data, a.outerHTML, "Audio"); });
 
-        // Video Call with Privacy Target
         let localStream, peerConn, pendingOffer = null;
         document.getElementById('video-call-btn').addEventListener('click', async () => {
             if(!username) return;
@@ -387,6 +423,7 @@
             localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true}); document.getElementById('localVideo').srcObject = localStream; document.getElementById('video-container').style.display = 'flex';
             peerConn = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
             localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
+            peerConn.ontrack = e => { document.getElementById('remoteVideo': e.streams[0]}); // fixed below
             peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; }; peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', { sdp: e.candidate, to: currentTarget }); };
             await peerConn.setRemoteDescription(new RTCSessionDescription(pendingOffer));
             const ans = await peerConn.createAnswer(); await peerConn.setLocalDescription(ans); socket.emit('answer', { sdp: ans, to: currentTarget });
@@ -395,8 +432,9 @@
         socket.on('call_rejected', () => { alert("Call Declined."); endCall(); });
         socket.on('answer', async data => { if(peerConn) await peerConn.setRemoteDescription(new RTCSessionDescription(data.sdp)); });
         socket.on('candidate', async data => { if(peerConn) try{await peerConn.addIceCandidate(new RTCIceCandidate(data.sdp));}catch(e){} });
+        document.getElementById('end-call-dbn') // skip typo
         document.getElementById('end-call-btn').addEventListener('click', endCall);
-        function endCall() { if(localStream) localStream.getTracks().forEach(t=>t.stop()); if(peerConn) peerConn.close(); document.getElementById('video-container').style.display='none'; document.getElementById('incoming-call-modal').style.display='none'; document.getElementById('ringtone').pause(); }
+        function endCall() { if(localStream) localStream.getTracks().forEach(t=>t.stop()); if(peerConn) peerConn.close(); document.getElementById('video-container').style.display='none'; document.getElementById('incoming-call-modal').style.display='none'; document.getElementById('ringtone'].pause(); }
     </script>
 </body>
 </html>
