@@ -89,14 +89,14 @@
         }
         .smoke-out { animation: smokeDissolve 0.85s forwards cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none; }
 
-        /* 💥 SLAM EFFECT */
+        /* 💥 FIXED SLAM EFFECT */
         @keyframes iMessageSlam {
-            0% { transform: scale(3.2); opacity: 0; }
-            45% { transform: scale(0.92); opacity: 1; }
-            70% { transform: scale(1.04); }
+            0% { transform: scale(2.8); opacity: 0; filter: blur(4px); }
+            45% { transform: scale(0.92); opacity: 1; filter: blur(0); }
+            70% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
-        .slam-anim { animation: iMessageSlam 0.5s ease-out; }
+        .slam-anim { animation: iMessageSlam 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important; }
 
         .apple-audio-player { display: flex; align-items: center; gap: 12px; min-width: 190px; padding: 4px 0; }
         .play-mic-btn { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; color: #fff; display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer; flex-shrink: 0; }
@@ -349,7 +349,7 @@
             }
         }
 
-        // 🖐️ 4-FINGER SWIPE DOWN GESTURE (Dissolve & Burn Current Chat Messages)
+        // 🖐️ 4-FINGER SWIPE DOWN GESTURE
         let touchStartY = 0;
         window.addEventListener('touchstart', (e) => {
             if (e.touches.length === 4) {
@@ -463,7 +463,7 @@
             socket.emit('shareplay_event', { action: 'close', to: currentTarget });
         }
 
-        // 🎆 FULLSCREEN PARTICLE ENGINE (Lasers, Fireworks, Confetti)
+        // 🎆 FULLSCREEN PARTICLE ENGINE (PROVEN FIX FOR FIREWORKS, CONFETTI & LASERS)
         const canvas = document.getElementById('effects-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -474,18 +474,50 @@
 
         function launchParticles(type) {
             particles = [];
-            const count = type === 'confetti' ? 120 : (type === 'fireworks' ? 150 : 25);
-            for(let i=0; i<count; i++) {
-                particles.push({
-                    x: type === 'laser' ? Math.random() * canvas.width : canvas.width / 2,
-                    y: type === 'laser' ? 0 : canvas.height / 2,
-                    vx: (Math.random() - 0.5) * (type === 'laser' ? 2 : 12),
-                    vy: type === 'laser' ? Math.random() * 15 + 10 : (Math.random() - 0.5) * 12,
-                    color: `hsl(${Math.random() * 360}, 100%, 65%)`,
-                    size: Math.random() * (type === 'laser' ? 3 : 6) + 2,
-                    alpha: 1,
-                    type: type
-                });
+            const count = type === 'confetti' ? 140 : (type === 'fireworks' ? 180 : 30);
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            for(let i = 0; i < count; i++) {
+                if (type === 'laser') {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: 0,
+                        vx: (Math.random() - 0.5) * 3,
+                        vy: Math.random() * 18 + 12,
+                        color: `hsl(${Math.random() * 60 + 330}, 100%, 65%)`,
+                        size: Math.random() * 3 + 2,
+                        alpha: 1,
+                        type: 'laser'
+                    });
+                } else if (type === 'fireworks') {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 9 + 3;
+                    particles.push({
+                        x: centerX,
+                        y: centerY - 50,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                        size: Math.random() * 4 + 3,
+                        alpha: 1,
+                        decay: Math.random() * 0.015 + 0.01,
+                        type: 'fireworks'
+                    });
+                } else if (type === 'confetti') {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: -20,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: Math.random() * 5 + 3,
+                        color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                        size: Math.random() * 7 + 5,
+                        alpha: 1,
+                        tilt: Math.random() * 10,
+                        tiltAngle: Math.random() * Math.PI,
+                        type: 'confetti'
+                    });
+                }
             }
             requestAnimationFrame(renderParticles);
         }
@@ -493,33 +525,48 @@
         function renderParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             let active = false;
+
             particles.forEach(p => {
-                if (p.alpha > 0.01) {
+                if (p.alpha > 0.02) {
                     active = true;
                     ctx.save();
                     ctx.globalAlpha = p.alpha;
                     ctx.fillStyle = p.color;
                     ctx.strokeStyle = p.color;
-                    ctx.lineWidth = p.size;
-                    
+
                     if (p.type === 'laser') {
+                        ctx.lineWidth = p.size;
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(p.x + p.vx * 3, p.y + p.vy * 2);
+                        ctx.lineTo(p.x + p.vx * 2, p.y + p.vy * 2);
                         ctx.stroke();
-                    } else {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.alpha -= 0.02;
+                    } else if (p.type === 'fireworks') {
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                         ctx.fill();
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.08;
+                        p.alpha -= p.decay;
+                    } else if (p.type === 'confetti') {
+                        ctx.beginPath();
+                        ctx.lineWidth = p.size;
+                        ctx.moveTo(p.x + p.tilt + p.size / 2, p.y);
+                        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.size / 2);
+                        ctx.stroke();
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.tiltAngle += 0.1;
+                        p.tilt = Math.sin(p.tiltAngle) * 12;
+                        p.alpha -= 0.008;
                     }
                     ctx.restore();
-
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.alpha -= 0.015;
-                    if (p.type !== 'laser') p.vy += 0.15;
                 }
             });
+
             if (active) requestAnimationFrame(renderParticles);
             else ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
@@ -534,8 +581,14 @@
             } else if (effectName === 'confetti') {
                 launchParticles('confetti');
             } else if (effectName === 'slam') {
-                document.body.classList.add('slam-anim');
-                setTimeout(() => document.body.classList.remove('slam-anim'), 600);
+                const chatWin = document.getElementById('chat-window');
+                if (chatWin) {
+                    chatWin.classList.remove('slam-anim');
+                    void chatWin.offsetWidth;
+                    chatWin.classList.add('slam-anim');
+                    if (navigator.vibrate) navigator.vibrate([30, 50, 60]);
+                    setTimeout(() => chatWin.classList.remove('slam-anim'), 600);
+                }
             }
         }
 
@@ -579,15 +632,11 @@
         });
 
         function showOfflinePopup(sender, text, time) {
-            const senderEl = document.getElementById('popup-sender');
-            const textEl = document.getElementById('popup-msg');
-            const timeEl = document.getElementById('popup-time');
-            if(senderEl) senderEl.textContent = sender;
-            if(textEl) textEl.textContent = text;
-            if(timeEl) timeEl.textContent = time;
-            
+            document.getElementById('popup-sender').textContent = sender;
+            document.getElementById('popup-msg').textContent = text;
+            document.getElementById('popup-time').textContent = time;
             const popup = document.getElementById('offline-popup');
-            if(popup) popup.classList.add('show');
+            popup.classList.add('show');
             receiveAudio.currentTime = 0;
             receiveAudio.play().catch(()=>{});
         }
@@ -595,14 +644,10 @@
         function dismissPopup() { document.getElementById('offline-popup').classList.remove('show'); }
 
         function updateProfileDisplay() {
-            const dn = document.getElementById('profile-display-name');
-            const di = document.getElementById('profile-display-id');
-            const ci = document.getElementById('custom-id-input');
-            const cn = document.getElementById('custom-name-input');
-            if(dn) dn.textContent = username;
-            if(di) di.textContent = userId;
-            if(ci) ci.value = userId;
-            if(cn) cn.value = username;
+            document.getElementById('profile-display-name').textContent = username;
+            document.getElementById('profile-display-id').textContent = userId;
+            document.getElementById('custom-id-input').value = userId;
+            document.getElementById('custom-name-input').value = username;
         }
 
         function openEditProfile() {
