@@ -10,7 +10,6 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #ffffff; transition: background 0.5s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.4); }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* 🎬 Cinematic Splash Screen */
         #splash-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #000000; z-index: 999999; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease-out; }
         .splash-text-container { display: flex; align-items: baseline; justify-content: center; }
         .brand-main { font-size: 42px; font-weight: 700; letter-spacing: -1px; opacity: 0; animation: fadeUpIn 1s forwards; background: linear-gradient(to right, #fff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; }
@@ -18,10 +17,8 @@
         @keyframes fadeUpIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideOutRight { from { opacity: 0; transform: translateX(-40px); clip-path: inset(0 100% 0 0); } to { opacity: 1; transform: translateX(0); clip-path: inset(0 0 0 0); } }
 
-        /* Liquid Glass Default */
         .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
 
-        /* 🏝️ DYNAMIC ISLAND WIDGET (Top Center) */
         #dynamic-island { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); height: 35px; min-width: 150px; border-radius: 20px; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; z-index: 100; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; }
         #dynamic-island.expanded { height: 250px; width: 85%; max-width: 350px; border-radius: 30px; background: rgba(255, 255, 255, 0.15); }
         .island-title { font-size: 14px; font-weight: 600; margin-top: 8px; text-shadow: none; display: flex; align-items: center; gap: 5px; }
@@ -29,15 +26,14 @@
         
         #users-list { display: none; width: 100%; padding: 15px; box-sizing: border-box; overflow-y: auto; text-align: left; text-shadow: none;}
         #dynamic-island.expanded #users-list { display: block; }
-        .user-row { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 15px; cursor: pointer; transition: background 0.2s; border-radius: 8px; }
+        .user-row { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 15px; cursor: pointer; transition: background 0.2s; border-radius: 8px; display: flex; justify-content: space-between;}
         .user-row:hover { background: rgba(255,255,255,0.2); }
         .user-row.active { background: rgba(0, 122, 255, 0.4); font-weight: bold; }
+        .user-id-badge { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 5px; font-size: 11px; color: #a5b4fc;}
 
         header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        
         #chat-window { flex: 1; padding: 50px 15px 20px 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         
-        /* Messages & Reactions */
         .message-wrapper { display: flex; flex-direction: column; position: relative; max-width: 80%; }
         .message-wrapper.sent { margin-left: auto; align-items: flex-end; }
         .message-wrapper.received { margin-right: auto; align-items: flex-start; }
@@ -47,7 +43,6 @@
         .message .username { font-weight: 600; color: rgba(255,255,255,0.8); font-size: 11px; margin-bottom: 4px; display: block; text-transform: uppercase;}
         .reaction { position: absolute; bottom: -10px; right: -5px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 50%; padding: 4px; font-size: 14px; border: 1px solid rgba(255,255,255,0.3); display: none; }
 
-        /* Floating Input Dock */
         #typing-indicator { font-size: 12px; color: rgba(255,255,255,0.8); margin: 0 15px 5px 15px; height: 15px; font-style: italic; text-shadow: none;}
         #form-container { padding: 0 15px; padding-bottom: env(safe-area-inset-bottom, 15px); position: relative; }
         #form { display: flex; padding: 8px; gap: 8px; align-items: center; border-radius: 35px; }
@@ -57,37 +52,33 @@
         .icon-btn:hover { background: rgba(255,255,255,0.3); }
         #send-btn { background: #007AFF; }
         
-        /* Emoji Picker Panel */
-        #emoji-picker { display: none; position: absolute; bottom: 70px; left: 15px; border-radius: 20px; padding: 10px; display: none; gap: 10px; z-index: 50; }
+        #emoji-picker { display: none; position: absolute; bottom: 70px; left: 15px; border-radius: 20px; padding: 10px; gap: 10px; z-index: 50; }
         .emoji-item { font-size: 24px; cursor: pointer; transition: transform 0.2s; text-shadow: none;}
         .emoji-item:hover { transform: scale(1.3); }
 
-        /* Modals (Name, Settings, Call) */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100000; display: flex; justify-content: center; align-items: center; }
         .modal-box { padding: 30px 25px; border-radius: 25px; text-align: center; width: 85%; max-width: 340px; }
         
-        #custom-name-input { width: 100%; box-sizing: border-box; padding: 15px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; background: rgba(0,0,0,0.2); color: white; font-size: 16px; outline: none; text-align: center; text-shadow: none; }
-        #custom-name-submit { background: #007AFF; color: white; border: none; padding: 14px 25px; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); text-shadow: none; }
-        
+        .custom-input { width: 100%; box-sizing: border-box; padding: 15px; margin: 10px 0; border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; background: rgba(0,0,0,0.2); color: white; font-size: 16px; outline: none; text-align: center; text-shadow: none; }
+        .custom-input::placeholder { color: rgba(255,255,255,0.5); }
+        .submit-btn { background: #007AFF; color: white; border: none; padding: 14px 25px; margin-top: 10px; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); text-shadow: none; }
+        #auth-error { color: #FF3B30; font-size: 13px; font-weight: bold; min-height: 18px; margin-top: 5px; text-shadow: none;}
+
+        /* Modals & Call Styles (Same as before) */
         .wallpaper-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
         .wp-option { height: 80px; border-radius: 12px; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); background-size: cover !important; background-position: center !important; }
-        
-        /* Call Styles */
         #video-container { display: none; position: fixed; top:0; left:0; width:100vw; height:100dvh; background:rgba(0,0,0,0.8); z-index:9999; flex-direction:column; justify-content:center; align-items:center; }
         video { width: 85vw; height: 35vh; background: rgba(0,0,0,0.5); border-radius: 20px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px;}
         .header-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(10px); text-shadow: none; cursor:pointer;}
-        
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
 <body>
 
-    <!-- Sounds (Pop & Swoosh) -->
     <audio id="sound-send" src="https://assets.mixkit.co/active_storage/sfx/232/232-preview.mp3"></audio>
     <audio id="sound-receive" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
     <audio id="ringtone" loop src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3"></audio>
 
-    <!-- 🎬 Splash Screen -->
     <div id="splash-screen">
         <div class="splash-text-container">
             <span class="brand-main">Chatsapp</span>
@@ -95,14 +86,16 @@
         </div>
     </div>
 
-    <!-- Liquid Name Setup -->
+    <!-- VIP ID Setup -->
     <div id="name-modal-overlay" class="modal-overlay">
         <div class="modal-box glass">
-            <h2 style="margin: 0 0 5px 0; font-weight: 600;">Welcome</h2>
-            <p style="margin: 0; font-size: 15px; color: rgba(255,255,255,0.9);">Enter your name to connect.</p>
+            <h2 style="margin: 0 0 5px 0; font-weight: 600;">VIP Access</h2>
+            <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.8);">Create your unique 6-digit ID.</p>
             <form id="custom-name-form">
-                <input type="text" id="custom-name-input" placeholder="Your Name" required autocomplete="off" />
-                <button type="submit" id="custom-name-submit">Continue</button>
+                <input type="text" id="custom-id-input" class="custom-input" placeholder="6-Digit Premium ID (e.g. 000007)" maxlength="6" pattern="\d{6}" required autocomplete="off" />
+                <input type="text" id="custom-name-input" class="custom-input" placeholder="Display Name" required autocomplete="off" />
+                <div id="auth-error"></div>
+                <button type="submit" class="submit-btn">Enter Chat</button>
             </form>
         </div>
     </div>
@@ -111,7 +104,6 @@
     <div id="settings-modal-overlay" class="modal-overlay" style="display: none;">
         <div class="modal-box glass">
             <h2 style="margin: 0;">Settings</h2>
-            <p style="font-size: 13px; color: rgba(255,255,255,0.9);">Choose Wallpaper</p>
             <div class="wallpaper-grid">
                 <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400')"></div>
                 <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=400')"></div>
@@ -124,12 +116,10 @@
         </div>
     </div>
 
-    <!-- 🏝️ DYNAMIC ISLAND -->
     <div id="dynamic-island" class="glass">
         <div class="island-title"><span class="online-dot"></span> <span id="current-chat-title">Public Chat</span> ▾</div>
         <div id="users-list">
             <div class="user-row active" onclick="setChatTarget('Public')">🌍 Public Chat</div>
-            <!-- Online users will inject here -->
         </div>
     </div>
 
@@ -139,10 +129,8 @@
     </header>
     
     <div id="chat-window"></div>
-
     <div id="typing-indicator"></div>
 
-    <!-- Emoji Picker Popup -->
     <div id="emoji-picker" class="glass">
         <span class="emoji-item">😂</span><span class="emoji-item">❤️</span><span class="emoji-item">👍</span>
         <span class="emoji-item">🔥</span><span class="emoji-item">🙏</span><span class="emoji-item">🎉</span>
@@ -159,7 +147,6 @@
         </form>
     </div>
 
-    <!-- Call Modals -->
     <div id="incoming-call-modal" class="modal-overlay" style="display:none; z-index:100001;">
         <div class="modal-box glass">
             <p>Incoming Video Call...</p>
@@ -178,26 +165,39 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Splash & Wallpapers
+        const socket = io();
+        let username = "";
+        let userId = "";
+        let currentTarget = "Public"; 
+        let messageIdCounter = 0;
+        const sendAudio = document.getElementById('sound-send');
+        const receiveAudio = document.getElementById('sound-receive');
+
         window.addEventListener('load', () => {
             setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 800); }, 3000); 
+            
+            // Auto-login from saved data
+            const savedData = localStorage.getItem('chatsapp_auth');
+            if(savedData) {
+                const data = JSON.parse(savedData);
+                socket.emit('register_user', data, (response) => {
+                    if(response.success) {
+                        userId = data.id; username = data.name;
+                        document.getElementById('name-modal-overlay').style.display = 'none';
+                    } else {
+                        localStorage.removeItem('chatsapp_auth'); // Data invalid/server reset
+                        document.getElementById('name-modal-overlay').style.display = 'flex';
+                    }
+                });
+            }
         });
+        
         const savedBg = localStorage.getItem('chatsapp_bg');
         if(savedBg) { document.body.style.background = savedBg; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundAttachment = 'fixed'; if(!savedBg.includes('gradient')) document.body.style.animation = 'none'; }
 
-        const socket = io();
-        let username = "";
-        let currentTarget = "Public"; // Default chat
-        let messageIdCounter = 0;
-
-        // Audios
-        const sendAudio = document.getElementById('sound-send');
-        const receiveAudio = document.getElementById('sound-receive');
-        
-        // 🏝️ Dynamic Island Logic
         const dynamicIsland = document.getElementById('dynamic-island');
         dynamicIsland.addEventListener('click', (e) => {
-            if(!e.target.classList.contains('user-row')) {
+            if(!e.target.classList.contains('user-row') && !e.target.classList.contains('user-id-badge')) {
                 dynamicIsland.classList.toggle('expanded');
             }
         });
@@ -206,34 +206,45 @@
             currentTarget = id;
             document.getElementById('current-chat-title').textContent = (id === 'Public') ? "Public Chat" : `Chat with ${name}`;
             dynamicIsland.classList.remove('expanded');
-            
-            // Highlight active row
             document.querySelectorAll('.user-row').forEach(row => row.classList.remove('active'));
-            event.target.classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
         socket.on('update_users', (users) => {
             const list = document.getElementById('users-list');
             list.innerHTML = `<div class="user-row ${currentTarget==='Public'?'active':''}" onclick="setChatTarget('Public', 'Public Chat')">🌍 Public Chat</div>`;
-            for(let id in users) {
-                if(users[id] !== username) { // Don't show self
-                    list.innerHTML += `<div class="user-row ${currentTarget===id?'active':''}" onclick="setChatTarget('${id}', '${users[id]}')">👤 ${users[id]}</div>`;
+            for(let sid in users) {
+                if(users[sid].id !== userId) {
+                    list.innerHTML += `<div class="user-row ${currentTarget===sid?'active':''}" onclick="setChatTarget('${sid}', '${users[sid].name}')">
+                        <span>👤 ${users[sid].name}</span>
+                        <span class="user-id-badge">ID: ${users[sid].id}</span>
+                    </div>`;
                 }
             }
         });
 
-        // Name Form
         document.getElementById('custom-name-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const name = document.getElementById('custom-name-input').value.trim();
-            if(name) {
-                username = name;
-                document.getElementById('name-modal-overlay').style.display = 'none';
-                socket.emit('user_join', username); // Tell server I joined
+            const idVal = document.getElementById('custom-id-input').value.trim();
+            const nameVal = document.getElementById('custom-name-input').value.trim();
+            
+            if(!/^\d{6}$/.test(idVal)) {
+                document.getElementById('auth-error').textContent = "❌ ID must be exactly 6 numbers.";
+                return;
             }
+
+            socket.emit('register_user', { id: idVal, name: nameVal }, (response) => {
+                if(response.success) {
+                    userId = idVal; username = nameVal;
+                    localStorage.setItem('chatsapp_auth', JSON.stringify({ id: idVal, name: nameVal }));
+                    document.getElementById('name-modal-overlay').style.display = 'none';
+                } else {
+                    document.getElementById('auth-error').textContent = response.message;
+                }
+            });
         });
 
-        // Emojis & Settings
+        // Settings, Emojis, Core Chat & WebRTC logic remains unchanged
         document.getElementById('settings-btn').addEventListener('click', () => document.getElementById('settings-modal-overlay').style.display = 'flex');
         document.getElementById('close-settings').addEventListener('click', () => document.getElementById('settings-modal-overlay').style.display = 'none');
         document.querySelectorAll('.wp-option').forEach(opt => {
@@ -247,18 +258,10 @@
         const emojiPicker = document.getElementById('emoji-picker');
         const mainInput = document.getElementById('input');
         emojiBtn.addEventListener('click', () => { emojiPicker.style.display = emojiPicker.style.display === 'flex' ? 'none' : 'flex'; });
-        document.querySelectorAll('.emoji-item').forEach(em => {
-            em.addEventListener('click', (e) => { mainInput.value += e.target.textContent; emojiPicker.style.display = 'none'; });
-        });
+        document.querySelectorAll('.emoji-item').forEach(em => { em.addEventListener('click', (e) => { mainInput.value += e.target.textContent; emojiPicker.style.display = 'none'; }); });
 
-        // Typing Indicator
         let typingTimer;
-        mainInput.addEventListener('input', () => {
-            socket.emit('typing', { name: username });
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => { socket.emit('stop_typing', { name: username }); }, 1500);
-        });
-
+        mainInput.addEventListener('input', () => { socket.emit('typing', { name: username }); clearTimeout(typingTimer); typingTimer = setTimeout(() => { socket.emit('stop_typing', { name: username }); }, 1500); });
         socket.on('typing', (data) => { document.getElementById('typing-indicator').textContent = `${data.name} is typing...`; });
         socket.on('stop_typing', () => { document.getElementById('typing-indicator').textContent = ''; });
 
@@ -267,64 +270,30 @@
         function appendMessage(data, contentHtml, typeLabel = "") {
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${data.name === username ? 'sent' : 'received'}`;
-            
-            const msgId = 'msg-' + (++messageIdCounter);
-            wrapper.id = msgId;
-            
-            const msgBubble = document.createElement('div');
-            msgBubble.className = 'message';
-            
-            // Double Tap to React (❤️)
-            msgBubble.addEventListener('dblclick', () => {
-                socket.emit('reaction', { msgId: msgId, emoji: '❤️' });
-                triggerVibration();
-            });
+            const msgId = 'msg-' + (++messageIdCounter); wrapper.id = msgId;
+            const msgBubble = document.createElement('div'); msgBubble.className = 'message';
+            msgBubble.addEventListener('dblclick', () => { socket.emit('reaction', { msgId: msgId, emoji: '❤️' }); triggerVibration(); });
 
             const labelText = typeLabel ? `${data.name} (${typeLabel})` : data.name;
             msgBubble.innerHTML = (data.name !== username) ? `<span class="username">${labelText}</span>${contentHtml}` : contentHtml;
+            const reactionDiv = document.createElement('div'); reactionDiv.className = 'reaction'; msgBubble.appendChild(reactionDiv); wrapper.appendChild(msgBubble);
             
-            const reactionDiv = document.createElement('div');
-            reactionDiv.className = 'reaction';
-            msgBubble.appendChild(reactionDiv);
-
-            wrapper.appendChild(msgBubble);
-            
-            // Show Private Tag if applicable
             if(data.to && data.to !== 'Public') {
-                const privateTag = document.createElement('div');
-                privateTag.style.fontSize = '10px'; privateTag.style.color = 'gold'; privateTag.textContent = '🔒 Private';
-                wrapper.appendChild(privateTag);
+                const privateTag = document.createElement('div'); privateTag.style.fontSize = '10px'; privateTag.style.color = 'gold'; privateTag.textContent = '🔒 Private'; wrapper.appendChild(privateTag);
             }
 
-            document.getElementById('chat-window').appendChild(wrapper);
-            document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
-            
-            // Sounds
-            if (data.name === username) { sendAudio.play().catch(()=>{}); } 
-            else { receiveAudio.play().catch(()=>{}); triggerVibration(); }
+            document.getElementById('chat-window').appendChild(wrapper); document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
+            if (data.name === username) { sendAudio.play().catch(()=>{}); } else { receiveAudio.play().catch(()=>{}); triggerVibration(); }
         }
 
-        socket.on('reaction', (data) => {
-            const wrapper = document.getElementById(data.msgId);
-            if(wrapper) {
-                const rxDiv = wrapper.querySelector('.reaction');
-                rxDiv.textContent = data.emoji;
-                rxDiv.style.display = 'block';
-            }
-        });
+        socket.on('reaction', (data) => { const wrapper = document.getElementById(data.msgId); if(wrapper) { const rxDiv = wrapper.querySelector('.reaction'); rxDiv.textContent = data.emoji; rxDiv.style.display = 'block'; } });
 
-        // Sending Text
         document.getElementById('form').addEventListener('submit', (e) => {
             e.preventDefault();
-            if (mainInput.value && username) {
-                socket.emit('chat message', { name: username, text: mainInput.value, to: currentTarget });
-                mainInput.value = '';
-                socket.emit('stop_typing', { name: username });
-            }
+            if (mainInput.value && username) { socket.emit('chat message', { name: username, text: mainInput.value, to: currentTarget }); mainInput.value = ''; socket.emit('stop_typing', { name: username }); }
         });
         socket.on('chat message', (data) => appendMessage(data, data.text));
 
-        // Images & Voice (Kept simple)
         const imageInput = document.getElementById('image-input');
         document.getElementById('img-btn').addEventListener('click', () => imageInput.click());
         imageInput.addEventListener('change', (e) => {
@@ -351,21 +320,15 @@
                 } catch(e){ alert("Mic error"); }
             } else { mediaRec.stop(); this.classList.remove('recording'); this.textContent = '🎙'; }
         });
-        socket.on('voice message', (data) => {
-            const a = document.createElement('audio'); a.controls=true; a.src=data.audio; a.style.width='100%';
-            appendMessage(data, a.outerHTML, "Audio");
-        });
+        socket.on('voice message', (data) => { const a = document.createElement('audio'); a.controls=true; a.src=data.audio; a.style.width='100%'; appendMessage(data, a.outerHTML, "Audio"); });
 
-        // WebRTC Video Call (Same logic)
         let localStream, peerConn, pendingOffer = null;
         document.getElementById('video-call-btn').addEventListener('click', async () => {
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-                document.getElementById('localVideo').srcObject = localStream; document.getElementById('video-container').style.display = 'flex';
+                localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true}); document.getElementById('localVideo').srcObject = localStream; document.getElementById('video-container').style.display = 'flex';
                 peerConn = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
                 localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
-                peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; };
-                peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', e.candidate); };
+                peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; }; peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', e.candidate); };
                 const offer = await peerConn.createOffer(); await peerConn.setLocalDescription(offer); socket.emit('offer', offer);
             } catch(e){ alert("Cam/Mic error"); }
         });
@@ -375,8 +338,7 @@
             localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true}); document.getElementById('localVideo').srcObject = localStream; document.getElementById('video-container').style.display = 'flex';
             peerConn = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
             localStream.getTracks().forEach(t => peerConn.addTrack(t, localStream));
-            peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; };
-            peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', e.candidate); };
+            peerConn.ontrack = e => { document.getElementById('remoteVideo').srcObject = e.streams[0]; }; peerConn.onicecandidate = e => { if(e.candidate) socket.emit('candidate', e.candidate); };
             await peerConn.setRemoteDescription(new RTCSessionDescription(pendingOffer));
             const ans = await peerConn.createAnswer(); await peerConn.setLocalDescription(ans); socket.emit('answer', ans);
         });
