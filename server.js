@@ -1,36 +1,484 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="/manifest.json">
+    <title>Chatsapp - Premium</title>
+    <style>
+        /* Apple System Font & premium Animated Background */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100dvh; 
+            overflow: hidden; 
+            background: linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #ffffff;
+            transition: background 0.5s ease;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.4); /* Light background par text clear dikhane ke liye */
+        }
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-app.use(express.static(path.join(__dirname, 'public')));
+        /* 🎬 APPLE EVENT STYLE SPLASH SCREEN */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
+            background: #000000; z-index: 999999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+        .splash-text-container {
+            display: flex; align-items: baseline; justify-content: center;
+        }
+        .brand-main {
+            font-size: 42px; font-weight: 700; letter-spacing: -1px;
+            opacity: 0; animation: fadeUpIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            background: linear-gradient(to right, #fff, #a5b4fc);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+        .brand-sub {
+            font-size: 42px; font-weight: 300; color: #86868b;
+            margin-left: 10px; letter-spacing: -1px;
+            opacity: 0;
+            animation: slideOutRight 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards; 
+            text-shadow: none;
+        }
 
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+        @keyframes fadeUpIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideOutRight {
+            from { opacity: 0; transform: translateX(-40px); clip-path: inset(0 100% 0 0); }
+            to { opacity: 1; transform: translateX(0); clip-path: inset(0 0 0 0); }
+        }
 
-    socket.on('chat message', (data) => io.emit('chat message', data));
-    socket.on('voice message', (data) => io.emit('voice message', data));
-    socket.on('image message', (data) => io.emit('image message', data));
+        /* LIQUID GLASS EFFECT CLASS */
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
 
-    // WebRTC Calling Signaling
-    socket.on('offer', (data) => socket.broadcast.emit('offer', data));
-    socket.on('answer', (data) => socket.broadcast.emit('answer', data));
-    socket.on('candidate', (data) => socket.broadcast.emit('candidate', data));
+        header { 
+            padding: 12px 15px; display: flex; justify-content: space-between; 
+            align-items: center; font-size: 20px; font-weight: 700; letter-spacing: 0.5px;
+            z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .header-left { display: flex; align-items: center; gap: 12px; }
+
+        #status { 
+            background: rgba(255, 204, 0, 0.2); backdrop-filter: blur(5px);
+            color: #ffcc00; padding: 6px; text-align: center; font-size: 12px; font-weight: 500;
+            text-shadow: none;
+        }
+
+        #chat-window { 
+            flex: 1; padding: 20px 15px; overflow-y: auto; display: flex; 
+            flex-direction: column; gap: 15px; scroll-behavior: smooth;
+        }
+        
+        /* iMessage Style Bubbles */
+        .message { padding: 12px 16px; border-radius: 20px; max-width: 80%; word-wrap: break-word; font-size: 15.5px; line-height: 1.4; position: relative; }
+        .message.sent { margin-left: auto; background: linear-gradient(135deg, #007AFF, #0056b3); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); text-shadow: none; }
+        .message.received { margin-right: auto; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #ffffff; border-bottom-left-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .message .username { font-weight: 600; color: rgba(255,255,255,0.8); font-size: 11px; margin-bottom: 4px; display: block; text-transform: uppercase; letter-spacing: 0.5px;}
+        .message img { width: 100%; border-radius: 12px; display: block; margin-top: 5px; }
+
+        /* Floating Input Dock */
+        #form-container { padding: 10px 15px; padding-bottom: env(safe-area-inset-bottom, 15px); }
+        #form { display: flex; padding: 8px; gap: 8px; align-items: center; border-radius: 35px; }
+        #input { flex: 1; padding: 10px 15px; border: none; background: transparent; color: white; outline: none; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        #input::placeholder { color: rgba(255,255,255,0.7); }
+        .icon-btn { background: rgba(255,255,255,0.15); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease; text-shadow: none; }
+        .icon-btn:hover { background: rgba(255,255,255,0.3); }
+        .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        #send-btn { background: #007AFF; }
+        #send-btn:hover { background: #0056b3; }
+        #record-btn.recording { background: #FF3B30; animation: pulse 1s infinite; }
+        #cancel-record-btn { background: rgba(255, 59, 48, 0.2); color: #FF3B30; display: none; }
+        #timer-display { display: none; flex: 1; text-align: center; color: #FF3B30; font-weight: 600; font-size: 16px; text-shadow: none; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* Settings Modal (Light & Dark Wallpapers) */
+        #settings-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 90000; display: none; justify-content: center; align-items: center; }
+        #settings-modal { padding: 25px; border-radius: 25px; text-align: center; width: 90%; max-width: 380px; }
+        
+        /* Grid ab 3 columns ka ho gaya hai */
+        .wallpaper-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
+        
+        .wp-option { height: 80px; border-radius: 12px; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); background-size: cover !important; background-position: center !important; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .wp-option:hover { transform: scale(1.05); border-color: #007AFF; }
+        .close-settings-btn { background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 25px; border-radius: 20px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; text-shadow: none; }
+
+        /* Call Modals */
+        #video-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+        .video-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; align-items: center; }
+        video { width: 85vw; height: 35vh; background: rgba(0,0,0,0.3); border-radius: 20px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+        .header-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(10px); text-shadow: none; }
+        
+        #incoming-call-modal { display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); padding: 20px; border-radius: 25px; z-index: 10000; text-align: center; color: white; width: 85%; max-width: 320px; }
+        .call-btn-group { display: flex; justify-content: center; gap: 20px; margin-top: 15px; }
+        .btn-accept { background: #34C759; color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(52, 199, 89, 0.4); text-shadow: none;}
+        .btn-reject { background: #FF3B30; color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); text-shadow: none;}
+        
+        /* PREMIUM CUSTOM NAME POPUP */
+        #name-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100000; display: flex; justify-content: center; align-items: center; }
+        #name-modal { padding: 30px 25px; border-radius: 25px; text-align: center; width: 85%; max-width: 340px; }
+        #custom-name-input { width: 100%; box-sizing: border-box; padding: 15px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; background: rgba(0,0,0,0.2); color: white; font-size: 16px; outline: none; text-align: center; text-shadow: none; }
+        #custom-name-input::placeholder { color: rgba(255,255,255,0.6); }
+        #custom-name-submit { background: #007AFF; color: white; border: none; padding: 14px 25px; border-radius: 20px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); transition: background 0.3s; text-shadow: none; }
+        #custom-name-submit:hover { background: #0056b3; }
+
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+</head>
+<body>
+
+    <!-- 🎬 CINEMATIC SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-text-container">
+            <span class="brand-main">Chatsapp</span>
+            <span class="brand-sub">easy chat</span>
+        </div>
+    </div>
+
+    <!-- CUSTOM LIQUID GLASS NAME ENTRY -->
+    <div id="name-modal-overlay">
+        <div id="name-modal" class="glass">
+            <h2 style="margin: 0 0 5px 0; font-weight: 600; font-size: 22px;">Welcome</h2>
+            <p style="margin: 0; font-size: 15px; color: rgba(255,255,255,0.9);">Please enter your name to continue.</p>
+            <form id="custom-name-form">
+                <input type="text" id="custom-name-input" placeholder="Your Name" required autocomplete="off" />
+                <button type="submit" id="custom-name-submit">Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SETTINGS / WALLPAPER MODAL (Light & Dark) -->
+    <div id="settings-modal-overlay">
+        <div id="settings-modal" class="glass">
+            <h2 style="margin: 0; font-weight: 600; font-size: 20px;">Settings</h2>
+            <p style="margin: 5px 0 0 0; font-size: 13px; color: rgba(255,255,255,0.9);">Choose Chat Wallpaper</p>
+            
+            <div class="wallpaper-grid">
+                <!-- 🌙 Dark Wallpapers -->
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')" style="background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop');"></div>
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=2564&auto=format&fit=crop')" style="background: url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?q=80&w=400&auto=format&fit=crop');"></div>
+                <div class="wp-option" data-bg="linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000)" style="background: linear-gradient(-45deg, #0f172a, #312e81, #1e1b4b, #000000);"></div>
+                
+                <!-- ☀️ Light / Colorful Wallpapers -->
+                <!-- Light Colorful Fluid -->
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1618005192384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')" style="background: url('https://images.unsplash.com/photo-1618005192384-a83a8bd57fbe?q=80&w=400&auto=format&fit=crop');"></div>
+                <!-- Light Abstract Pink/Blue -->
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=2564&auto=format&fit=crop')" style="background: url('https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=400&auto=format&fit=crop');"></div>
+                <!-- Clean White/Silver iOS Style -->
+                <div class="wp-option" data-bg="url('https://images.unsplash.com/photo-1505909182942-e2f09aee3e89?q=80&w=2670&auto=format&fit=crop')" style="background: url('https://images.unsplash.com/photo-1505909182942-e2f09aee3e89?q=80&w=400&auto=format&fit=crop');"></div>
+            </div>
+            <button id="close-settings" class="close-settings-btn">Done</button>
+        </div>
+    </div>
+
+    <audio id="ringtone" loop src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3"></audio>
+
+    <header class="glass">
+        <div class="header-left">
+            <button id="settings-btn" class="icon-btn" style="width: 35px; height: 35px; font-size: 16px; background: transparent; border: 1px solid rgba(255,255,255,0.3);">⚙️</button>
+            <span style="background: linear-gradient(to right, #fff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none;">Chatsapp</span>
+        </div>
+        <button class="header-btn" id="video-call-btn" disabled>📹 FaceTime</button>
+    </header>
     
-    // Call Reject and End Call Signals
-    socket.on('call_rejected', () => socket.broadcast.emit('call_rejected'));
-    socket.on('end_call', () => socket.broadcast.emit('end_call')); // Naya End Call Feature
+    <div id="status">Connecting...</div>
 
-    socket.on('disconnect', () => {
-        console.log('A user disconnected:', socket.id);
-    });
-});
+    <div id="chat-window"></div>
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Chatsapp server running on port ${PORT}`);
-});
+    <div id="incoming-call-modal" class="glass">
+        <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 1px;">Incoming Video Call</p>
+        <h3 style="margin: 8px 0 10px 0; font-weight: 400;">Someone is calling...</h3>
+        <div class="call-btn-group">
+            <button class="btn-reject" id="reject-call-btn">✖</button>
+            <button class="btn-accept" id="accept-call-btn">✔</button>
+        </div>
+    </div>
+
+    <div id="video-container">
+        <div class="video-grid">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <video id="localVideo" autoplay muted playsinline></video>
+        </div>
+        <button class="header-btn" id="end-call-btn" style="background: rgba(255,59,48,0.8); border:none; padding: 12px 30px; font-size: 16px; margin-top: 10px;">End Call</button>
+    </div>
+
+    <div id="form-container">
+        <form id="form" class="glass">
+            <button type="button" class="icon-btn" id="img-btn" disabled>📷</button>
+            <input id="input" autocomplete="off" placeholder="iMessage..." required disabled />
+            <span id="timer-display">00:00</span>
+            <button type="button" class="icon-btn" id="cancel-record-btn">✖</button>
+            <button type="button" class="icon-btn" id="record-btn" disabled>🎙</button>
+            <button type="submit" class="icon-btn" id="send-btn" disabled>⬆</button>
+            <input type="file" id="image-input" accept="image/*" style="display: none;" />
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // 🎬 SPLASH SCREEN TIMING LOGIC
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.style.display = 'none', 800);
+            }, 3000); 
+        });
+
+        // Set wallpaper from localStorage on load
+        const savedBg = localStorage.getItem('chatsapp_bg');
+        if(savedBg) {
+            document.body.style.background = savedBg;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+            if(!savedBg.includes('gradient')) document.body.style.animation = 'none';
+        }
+
+        const socket = io();
+        const chatWindow = document.getElementById('chat-window');
+        const mainInput = document.getElementById('input');
+        const ringtone = document.getElementById('ringtone'); 
+        
+        let username = "";
+
+        // Custom Name Entry Logic
+        document.getElementById('custom-name-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const enteredName = document.getElementById('custom-name-input').value.trim();
+            if(enteredName) {
+                username = enteredName;
+                document.getElementById('name-modal-overlay').style.display = 'none';
+                mainInput.disabled = false;
+                document.getElementById('send-btn').disabled = false;
+                document.getElementById('record-btn').disabled = false;
+                document.getElementById('img-btn').disabled = false;
+                document.getElementById('video-call-btn').disabled = false;
+            }
+        });
+
+        // Settings / Wallpaper Logic
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            document.getElementById('settings-modal-overlay').style.display = 'flex';
+        });
+        document.getElementById('close-settings').addEventListener('click', () => {
+            document.getElementById('settings-modal-overlay').style.display = 'none';
+        });
+
+        document.querySelectorAll('.wp-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const bg = this.getAttribute('data-bg');
+                document.body.style.background = bg;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundAttachment = 'fixed';
+                
+                if(bg.includes('gradient')) {
+                    document.body.style.animation = 'gradientBG 15s ease infinite';
+                } else {
+                    document.body.style.animation = 'none';
+                }
+                
+                localStorage.setItem('chatsapp_bg', bg);
+                this.style.transform = 'scale(0.9)';
+                setTimeout(() => this.style.transform = 'scale(1)', 150);
+            });
+        });
+
+        socket.on('connect', () => { document.getElementById('status').style.display = 'none'; });
+
+        function triggerVibration() { if (navigator.vibrate) navigator.vibrate(50); }
+
+        function appendMessage(data, contentHtml, typeLabel = "") {
+            const item = document.createElement('div');
+            item.className = `message ${data.name === username ? 'sent' : 'received'}`;
+            const labelText = typeLabel ? `${data.name} (${typeLabel})` : data.name;
+            if(data.name !== username){
+                item.innerHTML = `<span class="username">${labelText}</span>${contentHtml}`;
+            } else {
+                item.innerHTML = `${contentHtml}`; 
+            }
+            chatWindow.appendChild(item);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            triggerVibration(); 
+        }
+
+        // Text & Photos Logic
+        document.getElementById('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (mainInput.value && socket.connected && username) {
+                socket.emit('chat message', { name: username, text: mainInput.value });
+                mainInput.value = '';
+            }
+        });
+        socket.on('chat message', (data) => appendMessage(data, data.text));
+
+        const imageInput = document.getElementById('image-input');
+        document.getElementById('img-btn').addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files[0] && username) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width, h = img.height, max = 800;
+                        if (w > h && w > max) { h *= max / w; w = max; } else if (h > max) { w *= max / h; h = max; }
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        socket.emit('image message', { name: username, image: canvas.toDataURL('image/jpeg', 0.7) });
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        socket.on('image message', (data) => appendMessage(data, `<img src="${data.image}">`, "Photo"));
+
+        // Voice Logic
+        let mediaRecorder, audioChunks = [], isRecording = false, recordTimer, secondsCount = 0;
+        const recordBtn = document.getElementById('record-btn'), cancelBtn = document.getElementById('cancel-record-btn'), timerDisplay = document.getElementById('timer-display'), imgBtn = document.getElementById('img-btn'), sendBtn = document.getElementById('send-btn');
+
+        recordBtn.addEventListener('click', async () => {
+            if (!username) return;
+            if (!isRecording) {
+                try {
+                    mediaRecorder = new MediaRecorder(await navigator.mediaDevices.getUserMedia({ audio: true }));
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        if (audioChunks.length > 0) {
+                            const reader = new FileReader();
+                            reader.readAsDataURL(new Blob(audioChunks, { type: 'audio/webm' }));
+                            reader.onloadend = () => socket.emit('voice message', { name: username, audio: reader.result });
+                        }
+                    };
+                    mediaRecorder.start(); isRecording = true; secondsCount = 0;
+                    mainInput.style.display = 'none'; imgBtn.style.display = 'none'; sendBtn.style.display = 'none';
+                    timerDisplay.style.display = 'block'; cancelBtn.style.display = 'flex';
+                    recordBtn.textContent = '■'; recordBtn.classList.add('recording');
+                    timerDisplay.textContent = `00:00`;
+                    recordTimer = setInterval(() => {
+                        secondsCount++;
+                        timerDisplay.textContent = `${Math.floor(secondsCount/60).toString().padStart(2,'0')}:${(secondsCount%60).toString().padStart(2,'0')}`;
+                    }, 1000);
+                } catch (err) { alert("Mic access denied!"); }
+            } else stopRecording(true);
+        });
+
+        cancelBtn.addEventListener('click', () => { audioChunks = []; stopRecording(false); });
+        function stopRecording() {
+            if (mediaRecorder) { mediaRecorder.stop(); mediaRecorder.stream.getTracks().forEach(t => t.stop()); }
+            clearInterval(recordTimer); isRecording = false;
+            mainInput.style.display = 'block'; imgBtn.style.display = 'flex'; sendBtn.style.display = 'flex';
+            timerDisplay.style.display = 'none'; cancelBtn.style.display = 'none';
+            recordBtn.textContent = '🎙'; recordBtn.classList.remove('recording');
+        }
+        socket.on('voice message', (data) => {
+            const audio = document.createElement('audio'); audio.controls = true; audio.src = data.audio; audio.style.width = '100%'; audio.style.marginTop = '5px';
+            const item = document.createElement('div'); item.className = `message ${data.name === username ? 'sent' : 'received'}`;
+            if(data.name !== username){ item.innerHTML = `<span class="username">${data.name} (Audio)</span>`; } 
+            else { item.innerHTML = ``; }
+            item.appendChild(audio); chatWindow.appendChild(item); chatWindow.scrollTop = chatWindow.scrollHeight;
+            triggerVibration(); 
+        });
+
+        // VIDEO CALL
+        let localStream, remoteStream, peerConnection, pendingOffer = null;
+        const servers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+        const videoContainer = document.getElementById('video-container');
+        const incomingModal = document.getElementById('incoming-call-modal');
+
+        function stopRingtone() { ringtone.pause(); ringtone.currentTime = 0; }
+
+        document.getElementById('video-call-btn').addEventListener('click', async () => {
+            if(!username) return;
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+                videoContainer.style.display = 'flex';
+                createPeerConnection();
+                localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                socket.emit('offer', offer);
+            } catch (err) { alert("Camera/Mic permission required!"); }
+        });
+
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(servers);
+            remoteStream = new MediaStream();
+            document.getElementById('remoteVideo').srcObject = remoteStream;
+            peerConnection.ontrack = (e) => e.streams[0].getTracks().forEach(t => remoteStream.addTrack(t));
+            peerConnection.onicecandidate = (e) => { if (e.candidate) socket.emit('candidate', e.candidate); };
+        }
+
+        socket.on('offer', (offer) => {
+            pendingOffer = offer; incomingModal.style.display = 'block';
+            ringtone.play().catch(e => console.log("Blocked by browser"));
+            triggerVibration(); 
+        });
+
+        document.getElementById('accept-call-btn').addEventListener('click', async () => {
+            incomingModal.style.display = 'none'; stopRingtone();
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+                videoContainer.style.display = 'flex';
+            } catch (err) { alert("Camera access needed."); return; }
+
+            createPeerConnection();
+            localStream.getTracks().forEach(t => peerConnection.addTrack(t, localStream));
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(pendingOffer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.emit('answer', answer);
+            pendingOffer = null;
+        });
+
+        document.getElementById('reject-call-btn').addEventListener('click', () => {
+            incomingModal.style.display = 'none'; stopRingtone(); pendingOffer = null; socket.emit('call_rejected'); 
+        });
+
+        socket.on('call_rejected', () => { alert("Call Declined."); endCall(); });
+        socket.on('answer', async (answer) => {
+            if (peerConnection && !peerConnection.currentRemoteDescription) await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        });
+        socket.on('candidate', async (candidate) => {
+            if (peerConnection) try { await peerConnection.addIceCandidate(new RTCIceCandidate(candidate)); } catch (e) {}
+        });
+
+        function endCall() {
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (peerConnection) peerConnection.close();
+            videoContainer.style.display = 'none'; incomingModal.style.display = 'none';
+            stopRingtone(); pendingOffer = null;
+        }
+
+        document.getElementById('end-call-btn').addEventListener('click', endCall);
+    </script>
+</body>
+</html>
