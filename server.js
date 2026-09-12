@@ -8,77 +8,75 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-let onlineUsers = {}; // Tracks currently online users
-let registeredIDs = {}; // "123456" -> "Rahul" (Tracks claimed VIP IDs)
+let registeredIDs = {}; // 6-digit ID -> Name
+let activeConnections = {}; // 6-digit ID -> Socket ID
+let socketToId = {}; // Socket ID -> 6-digit ID
 
 io.on('connection', (socket) => {
     
-    // Premium VIP Login/Registration
+    // Register VIP ID
     socket.on('register_user', (data, callback) => {
         const { id, name } = data;
-        
-        if (registeredIDs[id]) {
-            if (registeredIDs[id] === name) {
-                // Returning valid user
-                onlineUsers[socket.id] = { id, name };
-                io.emit('update_users', onlineUsers);
-                callback({ success: true, message: "Welcome back!" });
-            } else {
-                // ID is already taken by someone else
-                callback({ success: false, message: "❌ This Premium ID is already taken!" });
-            }
+        if (registeredIDs[id] && registeredIDs[id] !== name) {
+            callback({ success: false, message: "❌ This Premium ID is already taken!" });
         } else {
-            // New user registration
             registeredIDs[id] = name;
-            onlineUsers[socket.id] = { id, name };
-            io.emit('update_users', onlineUsers);
+            activeConnections[id] = socket.id;
+            socketToId[socket.id] = id;
             callback({ success: true, message: "VIP ID Registered!" });
         }
     });
 
-    socket.on('chat message', (data) => {
-        if (data.to && data.to !== 'Public') {
-            io.to(data.to).emit('chat message', data);
-            socket.emit('chat message', data);
+    // Search Friend via 6-digit ID
+    socket.on('find_user', (targetId, callback) => {
+        if (activeConnections[targetId] && targetId !== socketToId[socket.id]) {
+            callback({ success: true, name: registeredIDs[targetId], id: targetId });
+        } else if (targetId === socketToId[socket.id]) {
+            callback({ success: false, message: "You cannot chat with yourself." });
         } else {
-            io.emit('chat message', data);
+            callback({ success: false, message: "User is offline or ID is wrong." });
         }
     });
 
-    socket.on('voice message', (data) => {
+    // Universal message routing system
+    const routeData = (eventName, data) => {
+        data.from_id = socketToId[socket.id]; // Sender's ID attached
+        data.name = registeredIDs[data.from_id]; // Sender's Name attached
+
         if (data.to && data.to !== 'Public') {
-            io.to(data.to).emit('voice message', data);
-            socket.emit('voice message', data);
+            const targetSocket = activeConnections[data.to];
+            if (targetSocket) {
+                io.to(targetSocket).emit(eventName, data); // Send to receiver
+            }
+            socket.emit(eventName, data); // Send back to self
         } else {
-            io.emit('voice message', data);
+            io.emit(eventName, data); // Broadcast to Public
         }
-    });
+    };
 
-    socket.on('image message', (data) => {
-        if (data.to && data.to !== 'Public') {
-            io.to(data.to).emit('image message', data);
-            socket.emit('image message', data);
-        } else {
-            io.emit('image message', data);
-        }
-    });
+    socket.on('chat message', data => routeData('chat message', data));
+    socket.on('voice message', data => routeData('voice message', data));
+    socket.on('image message', data => routeData('image message', data));
+    
+    socket.on('typing', data => routeData('typing', data));
+    socket.on('stop_typing', data => routeData('stop_typing', data));
+    
+    socket.on('reaction', data => io.emit('reaction', data)); // Simplified for now
 
-    socket.on('typing', (data) => socket.broadcast.emit('typing', data));
-    socket.on('stop_typing', (data) => socket.broadcast.emit('stop_typing', data));
-    socket.on('reaction', (data) => io.emit('reaction', data));
-
-    socket.on('offer', (data) => socket.broadcast.emit('offer', data));
-    socket.on('answer', (data) => socket.broadcast.emit('answer', data));
-    socket.on('candidate', (data) => socket.broadcast.emit('candidate', data));
-    socket.on('call_rejected', () => socket.broadcast.emit('call_rejected'));
+    // WebRTC Calls with Privacy Routing
+    socket.on('offer', data => routeData('offer', data));
+    socket.on('answer', data => routeData('answer', data));
+    socket.on('candidate', data => routeData('candidate', data));
+    socket.on('call_rejected', data => routeData('call_rejected', data));
 
     socket.on('disconnect', () => {
-        delete onlineUsers[socket.id];
-        io.emit('update_users', onlineUsers);
+        const id = socketToId[socket.id];
+        if (id) {
+            delete activeConnections[id];
+            delete socketToId[socket.id];
+        }
     });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Chatsapp Premium running on port ${PORT}`);
-});
+server.listen(PORT, () => console.log(`Chatsapp Premium running on port ${PORT}`));
