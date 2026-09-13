@@ -19,11 +19,14 @@
         }
         @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
+        /* 🎬 iPhone Duo Cinematic Entry Animations Restored */
         #splash-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #000000; z-index: 999999; display: flex; justify-content: center; align-items: center; transition: opacity 0.8s ease-out, visibility 0.8s; }
         .splash-text-container { display: flex; align-items: baseline; justify-content: center; }
         .brand-main { font-size: 38px; font-weight: 700; letter-spacing: -1px; opacity: 0; animation: fadeUpIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; background: linear-gradient(to right, #fff, #a5b4fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; }
-
+        .brand-sub { font-size: 38px; font-weight: 300; color: #86868b; margin-left: 8px; letter-spacing: -1px; opacity: 0; animation: slideOutRight 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards; text-shadow: none; }
+        
         @keyframes fadeUpIn { from { opacity: 0; transform: translateY(15px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes slideOutRight { from { opacity: 0; transform: translateX(-40px); clip-path: inset(0 100% 0 0); } to { opacity: 1; transform: translateX(0); clip-path: inset(0 0 0 0); } }
 
         .glass { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
 
@@ -105,7 +108,7 @@
         .icon-btn { background: rgba(255,255,255,0.15); color: white; border: none; width: 34px; height: 34px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 15px; cursor: pointer; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
         #send-btn { background: #007AFF; font-size: 16px; width: 34px; height: 34px; }
 
-        /* APPLE STYLE NOTIFICATION BANNER */
+        /* 🔔 APPLE STYLE STACKED NOTIFICATION BANNER */
         #offline-popup {
             position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 340px; background: rgba(20, 25, 35, 0.95); backdrop-filter: blur(30px);
             border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 12px; z-index: 999999; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 10px;
@@ -114,7 +117,7 @@
         #offline-popup.show { top: calc(env(safe-area-inset-top, 10px) + 20px); }
         .popup-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #34C759, #28a745); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0; }
         .popup-content { flex: 1; overflow: hidden; }
-        .popup-title { font-size: 13px; font-weight: 600; margin: 0 0 2px 0; }
+        .popup-title { font-size: 13px; font-weight: 600; margin: 0 0 2px 0; display: flex; justify-content: space-between; }
         .popup-text { font-size: 12px; margin: 0; color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Effects Selection Drawer */
@@ -178,8 +181,10 @@
     <audio id="sound-send" src="https://assets.mixkit.co/active_storage/sfx/2332/2332-preview.mp3"></audio>
     <audio id="sound-receive" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
     <audio id="ringtone" loop src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3"></audio>
+    <audio id="sound-laser" src="https://assets.mixkit.co/active_storage/sfx/2890/2890-preview.mp3"></audio>
     <audio id="remoteAudio" autoplay></audio>
 
+    <!-- 🎬 SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="splash-text-container">
             <span class="brand-main">Chatsapp</span>
@@ -187,12 +192,12 @@
         </div>
     </div>
 
-    <!-- Apple Offline Notification Banner -->
+    <!-- Apple Queued Offline Notification Banner -->
     <div id="offline-popup" onclick="dismissPopup()">
         <div class="popup-icon">💬</div>
         <div class="popup-content">
-            <div class="popup-title"><span id="popup-sender">Name</span></div>
-            <p class="popup-text" id="popup-msg">Sent you a message while you were away</p>
+            <div class="popup-title"><span id="popup-sender">Name</span> <span class="popup-time" id="popup-time">Just now</span></div>
+            <p class="popup-text" id="popup-msg">Sent you a message.</p>
         </div>
     </div>
 
@@ -378,6 +383,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // 🎬 SPLASH SCREEN TIMER
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             if(splash) { splash.style.opacity = '0'; setTimeout(() => splash.style.display = 'none', 800); }
@@ -403,11 +409,10 @@
         function toggleGhostSetting(isChecked) {
             ghostModeActive = isChecked;
             localStorage.setItem('chatsapp_ghost', isChecked);
-            if(isChecked) {
-                alert("👻 Ghost Mode Active: Long-press any message bubble to burn and smoke dissolve it!");
-            }
+            if(isChecked) { alert("👻 Ghost Mode Active: Long-press any message bubble to burn and smoke dissolve it!"); }
         }
 
+        // 👻 LONG-PRESS TO BURN
         function burnSingleMessage(wrapper) {
             if (!wrapper) return;
             const bubble = wrapper.querySelector('.message');
@@ -420,11 +425,40 @@
 
         const fxBtn = document.getElementById('fx-menu-btn');
         const fxDrawer = document.getElementById('effects-drawer');
-        fxBtn.addEventListener('click', () => {
-            fxDrawer.style.display = (fxDrawer.style.display === 'flex') ? 'none' : 'flex';
+        fxBtn.addEventListener('click', () => { fxDrawer.style.display = (fxDrawer.style.display === 'flex') ? 'none' : 'flex'; });
+
+        // 🔔 APPLE QUEUED OFFLINE NOTIFICATIONS
+        let popupQueue = [];
+        let popupActive = false;
+
+        socket.on('offline_notification', (msg) => {
+            document.getElementById('island-main-pill').classList.add('ring');
+            popupQueue.push({sender: msg.from_name, text: msg.text || 'Attachment', time: msg.time});
+            if(!popupActive) processPopupQueue();
         });
 
-        // 🍿 SharePlay Fix (Handles various mobile YT formats)
+        function processPopupQueue() {
+            if(popupQueue.length === 0) { popupActive = false; return; }
+            popupActive = true;
+            const msg = popupQueue.shift();
+            
+            document.getElementById('popup-sender').textContent = msg.sender;
+            document.getElementById('popup-msg').textContent = msg.text;
+            const timeEl = document.getElementById('popup-time');
+            if(timeEl) timeEl.textContent = msg.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+            const popup = document.getElementById('offline-popup');
+            popup.classList.add('show');
+            receiveAudio.currentTime = 0; receiveAudio.play().catch(()=>{});
+
+            setTimeout(() => {
+                popup.classList.remove('show');
+                setTimeout(processPopupQueue, 600); // Wait for slide up before showing next
+            }, 3500);
+        }
+        function dismissPopup() { document.getElementById('offline-popup').classList.remove('show'); }
+
+        // 🍿 SHAREPLAY
         function openSharePlayModal() {
             document.getElementById('dynamic-island-container').classList.remove('expanded');
             document.getElementById('shareplay-modal').style.display = 'flex';
@@ -440,28 +474,20 @@
             const inputVal = document.getElementById('shareplay-url-input').value.trim();
             const ytId = extractYTId(inputVal);
             if(!ytId) { alert("Please enter a valid YouTube video link!"); return; }
-
             document.getElementById('shareplay-modal').style.display = 'none';
             socket.emit('shareplay_event', { action: 'start', ytId: ytId, to: currentTarget });
             renderSharePlayDock(ytId);
         }
 
         socket.on('shareplay_event', (data) => {
-            if (data.action === 'start') {
-                renderSharePlayDock(data.ytId);
-                alert(`🍿 ${data.from_name} started a Watch Party!`);
-            } else if (data.action === 'close') {
-                document.getElementById('shareplay-dock').style.display = 'none';
-                document.getElementById('yt-player-placeholder').innerHTML = '';
-            }
+            if (data.action === 'start') { renderSharePlayDock(data.ytId); alert(`🍿 ${data.from_name} started a Watch Party!`); } 
+            else if (data.action === 'close') { document.getElementById('shareplay-dock').style.display = 'none'; document.getElementById('yt-player-placeholder').innerHTML = ''; }
         });
 
         function renderSharePlayDock(ytId) {
             const dock = document.getElementById('shareplay-dock');
             dock.style.display = 'block';
-            document.getElementById('yt-player-placeholder').innerHTML = `
-                <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-            `;
+            document.getElementById('yt-player-placeholder').innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&enablejsapi=1&playsinline=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
         }
 
         function closeSharePlay() {
@@ -470,35 +496,26 @@
             socket.emit('shareplay_event', { action: 'close', to: currentTarget });
         }
 
-        // Particle System
+        // ✨ PARTICLE SYSTEM
         const canvas = document.getElementById('effects-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
         function launchParticles(type) {
-            particles = [];
-            const count = type === 'confetti' ? 140 : (type === 'fireworks' ? 180 : 30);
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
+            particles = []; const count = type === 'confetti' ? 140 : (type === 'fireworks' ? 180 : 30);
+            const centerX = window.innerWidth / 2; const centerY = window.innerHeight / 2;
             for(let i = 0; i < count; i++) {
-                if (type === 'laser') {
-                    particles.push({ x: Math.random() * canvas.width, y: 0, vx: (Math.random() - 0.5) * 3, vy: Math.random() * 18 + 12, color: `hsl(${Math.random() * 60 + 330}, 100%, 65%)`, size: Math.random() * 3 + 2, alpha: 1, type: 'laser' });
-                } else if (type === 'fireworks') {
-                    const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 9 + 3;
-                    particles.push({ x: centerX, y: centerY - 50, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, color: `hsl(${Math.random() * 360}, 100%, 60%)`, size: Math.random() * 4 + 3, alpha: 1, decay: Math.random() * 0.015 + 0.01, type: 'fireworks' });
-                } else if (type === 'confetti') {
-                    particles.push({ x: Math.random() * canvas.width, y: -20, vx: (Math.random() - 0.5) * 4, vy: Math.random() * 5 + 3, color: `hsl(${Math.random() * 360}, 100%, 60%)`, size: Math.random() * 7 + 5, alpha: 1, tilt: Math.random() * 10, tiltAngle: Math.random() * Math.PI, type: 'confetti' });
-                }
+                if (type === 'laser') { particles.push({ x: Math.random() * canvas.width, y: 0, vx: (Math.random() - 0.5) * 3, vy: Math.random() * 18 + 12, color: `hsl(${Math.random() * 60 + 330}, 100%, 65%)`, size: Math.random() * 3 + 2, alpha: 1, type: 'laser' }); } 
+                else if (type === 'fireworks') { const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 9 + 3; particles.push({ x: centerX, y: centerY - 50, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, color: `hsl(${Math.random() * 360}, 100%, 60%)`, size: Math.random() * 4 + 3, alpha: 1, decay: Math.random() * 0.015 + 0.01, type: 'fireworks' }); } 
+                else if (type === 'confetti') { particles.push({ x: Math.random() * canvas.width, y: -20, vx: (Math.random() - 0.5) * 4, vy: Math.random() * 5 + 3, color: `hsl(${Math.random() * 360}, 100%, 60%)`, size: Math.random() * 7 + 5, alpha: 1, tilt: Math.random() * 10, tiltAngle: Math.random() * Math.PI, type: 'confetti' }); }
             }
             requestAnimationFrame(renderParticles);
         }
 
         function renderParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let active = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height); let active = false;
             particles.forEach(p => {
                 if (p.alpha > 0.02) {
                     active = true; ctx.save(); ctx.globalAlpha = p.alpha; ctx.fillStyle = p.color; ctx.strokeStyle = p.color;
@@ -508,8 +525,7 @@
                     ctx.restore();
                 }
             });
-            if (active) requestAnimationFrame(renderParticles);
-            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (active) requestAnimationFrame(renderParticles); else ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function triggerScreenEffect(effectName) {
@@ -541,30 +557,13 @@
             }
         });
 
-        // 🔔 Apple Style Stacked Notifications
-        socket.on('offline_notification', (msg) => {
-            showOfflinePopup(msg.from_name, msg.text || 'Attachment', msg.time);
-            document.getElementById('island-main-pill').classList.add('ring');
-        });
-        function showOfflinePopup(sender, text, time) {
-            document.getElementById('popup-sender').textContent = sender;
-            document.getElementById('popup-msg').textContent = text;
-            const popup = document.getElementById('offline-popup');
-            popup.classList.add('show');
-            receiveAudio.currentTime = 0; receiveAudio.play().catch(()=>{});
-            setTimeout(() => popup.classList.remove('show'), 3500); // Auto hide
-        }
-        function dismissPopup() { document.getElementById('offline-popup').classList.remove('show'); }
-
         function updateProfileDisplay() {
-            document.getElementById('profile-display-name').textContent = username;
-            document.getElementById('profile-display-id').textContent = userId;
-            document.getElementById('custom-id-input').value = userId;
-            document.getElementById('custom-name-input').value = username;
+            document.getElementById('profile-display-name').textContent = username; document.getElementById('profile-display-id').textContent = userId;
+            document.getElementById('custom-id-input').value = userId; document.getElementById('custom-name-input').value = username;
         }
         function openEditProfile() { document.getElementById('settings-modal-overlay').style.display = 'none'; document.getElementById('name-modal-overlay').style.display = 'flex'; }
 
-        // Wallpapers
+        // Wallpapers & Custom Upload
         const savedBg = localStorage.getItem('chatsapp_bg');
         if(savedBg) { 
             document.body.style.background = savedBg; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundPosition = 'center'; document.body.style.backgroundRepeat = 'no-repeat'; document.body.style.backgroundAttachment = 'fixed'; 
@@ -574,12 +573,10 @@
             opt.addEventListener('click', function() {
                 const bg = this.getAttribute('data-bg'); 
                 document.body.style.background = bg; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundPosition = 'center'; document.body.style.backgroundRepeat = 'no-repeat'; document.body.style.backgroundAttachment = 'fixed';
-                localStorage.setItem('chatsapp_bg', bg);
-                document.body.style.animation = bg.includes('gradient') ? 'gradientBG 15s ease infinite' : 'none';
+                localStorage.setItem('chatsapp_bg', bg); document.body.style.animation = bg.includes('gradient') ? 'gradientBG 15s ease infinite' : 'none';
             });
         });
         
-        // Custom Upload Wallpaper
         function setCustomWallpaper(e) {
             if (e.target.files && e.target.files[0]) {
                 const reader = new FileReader();
@@ -593,8 +590,7 @@
                         canvasImg.getContext('2d').drawImage(img, 0, 0, w, h);
                         const b64 = canvasImg.toDataURL('image/jpeg', 0.8);
                         const bgStr = `url('${b64}')`;
-                        document.body.style.background = bgStr;
-                        document.body.style.backgroundSize = 'cover'; document.body.style.backgroundPosition = 'center'; document.body.style.backgroundRepeat = 'no-repeat'; document.body.style.backgroundAttachment = 'fixed'; document.body.style.animation = 'none';
+                        document.body.style.background = bgStr; document.body.style.backgroundSize = 'cover'; document.body.style.backgroundPosition = 'center'; document.body.style.backgroundRepeat = 'no-repeat'; document.body.style.backgroundAttachment = 'fixed'; document.body.style.animation = 'none';
                         try { localStorage.setItem('chatsapp_bg', bgStr); } catch(err) { alert("File too large to save permanently, applied for current session."); }
                     };
                     img.src = event.target.result;
@@ -609,6 +605,7 @@
             if(container.classList.contains('expanded')) { document.getElementById('island-main-pill').classList.remove('ring'); }
         }
 
+        // Group & Chat Targets
         function openAddFriendModal() { document.getElementById('dynamic-island-container').classList.remove('expanded'); document.getElementById('add-friend-overlay').style.display = 'flex'; document.getElementById('search-error').textContent = ""; }
         function searchFriend() {
             const targetId = document.getElementById('search-id-input').value.trim();
@@ -621,28 +618,24 @@
             });
         }
 
-        // 👥 VIP Group Creation
         function openGroupModal() { document.getElementById('dynamic-island-container').classList.remove('expanded'); document.getElementById('create-group-overlay').style.display = 'flex'; document.getElementById('group-error').textContent = ""; }
         function createGroup() {
             const name = document.getElementById('group-name-input').value.trim();
             const members = document.getElementById('group-members-input').value.trim();
             if(!name || !members) { document.getElementById('group-error').textContent = "Please fill all fields"; return; }
-            
             socket.emit('create_group', { name: name, members: members }, (res) => {
                 if(res.success) { document.getElementById('create-group-overlay').style.display = 'none'; }
                 else { document.getElementById('group-error').textContent = res.message; }
             });
         }
 
-        socket.on('group_added', (data) => {
-            if(!localFriends.includes(data.id)) { addPrivateChatTab(data.id, data.name, true); }
-        });
+        socket.on('group_added', (data) => { if(!localFriends.includes(data.id)) { addPrivateChatTab(data.id, data.name, true); } });
 
         function addPrivateChatTab(id, name, isGroup = false) {
             if(!localFriends.includes(id)) {
                 localFriends.push(id);
                 const list = document.getElementById('users-list');
-                const btn = document.querySelectorAll('.island-action-btn')[0]; // insert before first btn
+                const btn = document.querySelectorAll('.island-action-btn')[0]; 
                 const newRow = document.createElement('div');
                 newRow.className = `user-row`; newRow.id = `tab-${id}`;
                 newRow.innerHTML = `<span>${isGroup ? '👥' : '👤'} ${name}</span><span class="user-id-badge">${isGroup ? 'GRP' : 'ID'}: ${id}</span>`;
@@ -697,30 +690,22 @@
 
             const msgBubble = document.createElement('div'); msgBubble.className = 'message';
             
-            // 👻 LONG PRESS DELETE
+            // 👻 LONG PRESS TO DELETE
             let pressTimer = null;
             const startPress = () => { if (!ghostModeActive) return; pressTimer = setTimeout(() => { burnSingleMessage(wrapper); }, 500); };
             const cancelPress = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
-            msgBubble.addEventListener('touchstart', startPress, { passive: true });
-            msgBubble.addEventListener('touchend', cancelPress, { passive: true });
-            msgBubble.addEventListener('touchmove', cancelPress, { passive: true });
-            msgBubble.addEventListener('mousedown', startPress);
-            msgBubble.addEventListener('mouseup', cancelPress);
-            msgBubble.addEventListener('mouseleave', cancelPress);
+            msgBubble.addEventListener('touchstart', startPress, { passive: true }); msgBubble.addEventListener('touchend', cancelPress, { passive: true }); msgBubble.addEventListener('touchmove', cancelPress, { passive: true });
+            msgBubble.addEventListener('mousedown', startPress); msgBubble.addEventListener('mouseup', cancelPress); msgBubble.addEventListener('mouseleave', cancelPress);
 
             const labelText = typeLabel ? `${data.name} (${typeLabel})` : data.name;
             const messageTime = data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-            
             let innerContent = (data.from_id !== userId) ? `<span class="username">${labelText}</span>${contentHtml}` : `${contentHtml}`;
             innerContent += `<div class="msg-time">${messageTime}</div>`;
 
             msgBubble.innerHTML = innerContent; wrapper.appendChild(msgBubble);
-            
             const chatWin = document.getElementById('chat-window'); chatWin.appendChild(wrapper); 
             if(chatId === currentTarget) chatWin.scrollTop = chatWin.scrollHeight;
-            
-            if (data.from_id === userId) { sendAudio.currentTime = 0; sendAudio.play().catch(()=>{}); } 
-            else { receiveAudio.currentTime = 0; receiveAudio.play().catch(()=>{}); }
+            if (data.from_id === userId) { sendAudio.currentTime = 0; sendAudio.play().catch(()=>{}); } else { receiveAudio.currentTime = 0; receiveAudio.play().catch(()=>{}); }
         }
 
         document.getElementById('form').addEventListener('submit', (e) => {
@@ -758,8 +743,19 @@
         });
         socket.on('image message', (data) => appendMessage(data, `<img src="${data.image}" style="max-width:100%; border-radius:12px;">`, "Photo"));
 
-        const recordBtn = document.getElementById('record-btn');
+        function createAppleVoicePlayer(audioSrc) {
+            const container = document.createElement('div'); container.className = 'apple-audio-player';
+            const btn = document.createElement('button'); btn.className = 'play-mic-btn'; btn.innerHTML = '▶';
+            const waves = document.createElement('div'); waves.className = 'audio-waves';
+            for(let i = 0; i < 12; i++) { const bar = document.createElement('div'); bar.className = 'wave-bar'; bar.style.animationDelay = `${i * 0.1}s`; waves.appendChild(bar); }
+            const audio = new Audio(audioSrc);
+            btn.onclick = () => { if(audio.paused) { audio.play(); btn.innerHTML = '⏸'; } else { audio.pause(); btn.innerHTML = '▶'; } };
+            audio.onended = () => { btn.innerHTML = '▶'; }; container.appendChild(btn); container.appendChild(waves);
+            return container.outerHTML;
+        }
+
         let mediaRec, chunks = [];
+        const recordBtn = document.getElementById('record-btn');
         recordBtn.addEventListener('click', async function() {
             if(!this.classList.contains('recording')) {
                 try {
@@ -767,18 +763,13 @@
                     mediaRec = new MediaRecorder(stream); chunks = [];
                     mediaRec.ondataavailable = e => chunks.push(e.data);
                     mediaRec.onstop = () => { 
-                        if(chunks.length > 0){ 
-                            const r = new FileReader(); r.onloadend = () => socket.emit('voice message', { audio: r.result, to: currentTarget }); r.readAsDataURL(new Blob(chunks, { type: 'audio/webm' })); 
-                        } 
+                        if(chunks.length > 0){ const r = new FileReader(); r.onloadend = () => socket.emit('voice message', { audio: r.result, to: currentTarget }); r.readAsDataURL(new Blob(chunks, { type: 'audio/webm' })); } 
                     };
                     mediaRec.start(); this.classList.add('recording'); this.textContent = '■';
                 } catch(e){ alert("Mic error"); }
             } else { if(mediaRec) mediaRec.stop(); this.classList.remove('recording'); this.textContent = '🎙'; }
         });
-        socket.on('voice message', (data) => {
-            const playerHtml = `<div class="apple-audio-player"><button class="play-mic-btn" onclick="const a=new Audio('${data.audio}'); a.play(); this.innerHTML='⏸'; a.onended=()=>this.innerHTML='▶';">▶</button><div class="audio-waves"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div></div>`;
-            appendMessage(data, playerHtml, "Audio Note");
-        });
+        socket.on('voice message', (data) => appendMessage(data, createAppleVoicePlayer(data.audio), "Audio Note"));
 
         // 📹 CALLING SYSTEM (Slide to Answer, Screen Share, Flip Camera, Sync Disconnect)
         let localStream, peerConn, pendingOffer = null;
@@ -790,8 +781,7 @@
             activeCallType = isVideo ? 'video' : 'audio';
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo ? { facingMode: "user" } : false, audio: true });
-                setupCallUI(isVideo);
-                initiatePeer();
+                setupCallUI(isVideo); initiatePeer();
                 const offer = await peerConn.createOffer(); await peerConn.setLocalDescription(offer); 
                 socket.emit('offer', { sdp: offer, to: currentTarget, isVideo: isVideo, callerName: username });
             } catch(e){ alert("Camera/Mic permission error"); }
@@ -807,12 +797,10 @@
             const incModal = document.getElementById('incoming-call-modal');
             const ring = document.getElementById('ringtone');
             incModal.style.display = 'flex'; ring.play().catch(()=>{}); 
-            
-            // Reset slider
             document.getElementById('slide-thumb').style.left = '5px';
         });
 
-        // Sliding Logic to Answer
+        // 🚨 Slide to Answer UI
         const slideBox = document.getElementById('slide-box');
         const slideThumb = document.getElementById('slide-thumb');
         let isDragging = false; let startX = 0;
@@ -820,15 +808,12 @@
         slideThumb.addEventListener('touchstart', (e) => { isDragging = true; startX = e.touches[0].clientX; }, {passive:true});
         window.addEventListener('touchmove', (e) => {
             if(!isDragging) return;
-            let moveX = e.touches[0].clientX - startX;
-            let maxW = slideBox.offsetWidth - 60;
+            let moveX = e.touches[0].clientX - startX; let maxW = slideBox.offsetWidth - 60;
             if (moveX < 0) moveX = 0; if (moveX > maxW) moveX = maxW;
             slideThumb.style.left = `${moveX + 5}px`;
             
-            // Reached End -> Accept
             if(moveX >= maxW - 10) {
-                isDragging = false;
-                document.getElementById('ringtone').pause();
+                isDragging = false; document.getElementById('ringtone').pause();
                 document.getElementById('incoming-call-modal').style.display = 'none';
                 connectIncomingCall(activeCallType === 'video');
             }
@@ -840,8 +825,7 @@
         const incModal = document.getElementById('incoming-call-modal');
         incModal.addEventListener('touchstart', () => {
             declineTimer = setTimeout(() => {
-                document.getElementById('ringtone').pause();
-                incModal.style.display = 'none';
+                document.getElementById('ringtone').pause(); incModal.style.display = 'none';
                 socket.emit('call_rejected', { to: currentTarget });
             }, 800);
         });
@@ -859,11 +843,9 @@
 
         function setupCallUI(isVideo) {
             if(isVideo) {
-                document.getElementById('localVideo').srcObject = localStream; 
-                document.getElementById('video-container').style.display = 'flex';
+                document.getElementById('localVideo').srcObject = localStream; document.getElementById('video-container').style.display = 'flex';
             } else {
-                document.getElementById('voice-caller-name').textContent = `In call with ${currentTargetName}`;
-                document.getElementById('voice-call-overlay').style.display = 'flex';
+                document.getElementById('voice-caller-name').textContent = `In call with ${currentTargetName}`; document.getElementById('voice-call-overlay').style.display = 'flex';
             }
         }
 
@@ -879,15 +861,13 @@
 
         // Camera Flip
         document.getElementById('flip-cam-btn').addEventListener('click', async () => {
-            if (!localStream) return;
-            isFrontCam = !isFrontCam;
+            if (!localStream) return; isFrontCam = !isFrontCam;
             try {
                 const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: isFrontCam ? "user" : "environment" }});
                 const newTrack = newStream.getVideoTracks()[0];
                 const sender = peerConn.getSenders().find(s => s.track.kind === 'video');
                 if (sender) sender.replaceTrack(newTrack);
                 
-                // Keep local audio, replace video
                 const audioTrack = localStream.getAudioTracks()[0];
                 localStream.removeTrack(localStream.getVideoTracks()[0]);
                 localStream.addTrack(newTrack);
@@ -906,17 +886,15 @@
                 
                 document.getElementById('localVideo').srcObject = screenStream;
                 screenTrack.onended = async () => {
-                     // Revert to camera if screen share stops
                      const camStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: "user"}});
-                     const camTrack = camStream.getVideoTracks()[0];
-                     sender.replaceTrack(camTrack);
+                     const camTrack = camStream.getVideoTracks()[0]; sender.replaceTrack(camTrack);
                      document.getElementById('localVideo').srcObject = camStream;
                 };
             } catch(e) { }
         });
 
         socket.on('call_rejected', () => { alert("Call Declined."); forceEndCall(); });
-        socket.on('call_ended', () => { forceEndCall(); }); // Synchronized disconnect
+        socket.on('call_ended', () => { forceEndCall(); }); 
         socket.on('answer', async data => { if(peerConn) await peerConn.setRemoteDescription(new RTCSessionDescription(data.sdp)); });
         socket.on('candidate', async data => { if(peerConn) try{await peerConn.addIceCandidate(new RTCIceCandidate(data.sdp));}catch(e){} });
 
