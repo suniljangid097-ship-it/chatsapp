@@ -11,7 +11,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 let registeredIDs = {};
 let activeConnections = {};
 let socketToId = {};
-let offlineMessageQueue = {}; // Stores all missed messages per ID
+let offlineMessageQueue = {};
+let groups = {}; // Custom VIP Groups -> groupId: { name, admin, members: [] }
 
 io.on('connection', (socket) => {
     socket.on('register_user', (data, callback) => {
@@ -27,14 +28,20 @@ io.on('connection', (socket) => {
         
         callback({ success: true, message: "VIP ID Registered!" });
 
-        // Deliver ALL pending offline messages one by one
+        // Push offline messages sequentially for Apple-style stacked notifications
         if (offlineMessageQueue[id] && offlineMessageQueue[id].length > 0) {
-            setTimeout(() => {
-                offlineMessageQueue[id].forEach(item => {
-                    socket.emit(item.type, item.data);
-                });
-                offlineMessageQueue[id] = []; // Clear queue after sending all
-            }, 800);
+            let delay = 1000;
+            offlineMessageQueue[id].forEach((item, index) => {
+                setTimeout(() => socket.emit(item.type, item.data), delay + (index * 1200));
+            });
+            offlineMessageQueue[id] = [];
+        }
+
+        // Re-join user to their active groups
+        for (let gId in groups) {
+            if (groups[gId].members.includes(id)) {
+                socket.emit('group_added', { id: gId, name: groups[gId].name });
+            }
         }
     });
 
@@ -48,26 +55,62 @@ io.on('connection', (socket) => {
         }
     });
 
+    // VIP Group Creation
+    socket.on('create_group', (data, callback) => {
+        const senderId = socketToId[socket.id];
+        if(!senderId) return;
+        
+        const groupId = 'G' + Math.floor(100000 + Math.random() * 900000); // e.g. G123456
+        let membersArray = data.members.split(',').map(m => m.trim()).filter(m => m.length === 6 && registeredIDs[m]);
+        if(!membersArray.includes(senderId)) membersArray.push(senderId); // Add admin
+        
+        if (membersArray.length < 2) return callback({ success: false, message: "Need valid IDs to create group." });
+
+        groups[groupId] = { name: data.name, admin: senderId, members: membersArray };
+        
+        membersArray.forEach(mId => {
+            if (activeConnections[mId]) {
+                io.to(activeConnections[mId]).emit('group_added', { id: groupId, name: data.name });
+            }
+        });
+        callback({ success: true });
+    });
+
     const routeData = (eventName, data) => {
         const senderId = socketToId[socket.id];
         if (!senderId) return;
 
         data.from_id = senderId;
         data.name = registeredIDs[senderId];
-        // World Clock / Accurate Local Time
         data.time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
-        if (data.to && data.to !== 'Public') {
+        // Group Routing
+        if (data.to && data.to.startsWith('G') && groups[data.to]) {
+            groups[data.to].members.forEach(memberId => {
+                if (memberId !== senderId) {
+                    if (activeConnections[memberId]) {
+                        io.to(activeConnections[memberId]).emit(eventName, data);
+                    } else {
+                        if (!offlineMessageQueue[memberId]) offlineMessageQueue[memberId] = [];
+                        offlineMessageQueue[memberId].push({ type: eventName, data: data });
+                    }
+                }
+            });
+            socket.emit(eventName, data); // send back to sender
+        } 
+        // 1-to-1 Routing
+        else if (data.to && data.to !== 'Public') {
             const targetSocketId = activeConnections[data.to];
             if (targetSocketId) {
                 io.to(targetSocketId).emit(eventName, data);
             } else {
-                // Push ALL messages into queue if recipient is offline
                 if (!offlineMessageQueue[data.to]) offlineMessageQueue[data.to] = [];
                 offlineMessageQueue[data.to].push({ type: eventName, data: data });
             }
             socket.emit(eventName, data);
-        } else {
+        } 
+        // Public Routing
+        else {
             io.emit(eventName, data);
         }
     };
@@ -76,14 +119,51 @@ io.on('connection', (socket) => {
     socket.on('voice message', data => routeData('voice message', data));
     socket.on('image message', data => routeData('image message', data));
     
+    socket.on('screen_effect', (data) => {
+        const senderId = socketToId[socket.id];
+        if (!senderId) return;
+        data.from_name = registeredIDs[senderId];
+        if (data.to && data.to.startsWith('G') && groups[data.to]) {
+             groups[data.to].members.forEach(m => { if(m !== senderId && activeConnections[m]) io.to(activeConnections[m]).emit('screen_effect', data); });
+        } else if (data.to && data.to !== 'Public' && activeConnections[data.to]) {
+            io.to(activeConnections[data.to]).emit('screen_effect', data);
+        } else {
+            io.emit('screen_effect', data);
+        }
+    });
+
+    socket.on('shareplay_event', (data) => {
+        const senderId = socketToId[socket.id];
+        if (!senderId) return;
+        data.from_name = registeredIDs[senderId];
+        if (data.to && data.to !== 'Public' && activeConnections[data.to]) {
+            io.to(activeConnections[data.to]).emit('shareplay_event', data);
+        } else {
+            socket.broadcast.emit('shareplay_event', data);
+        }
+    });
+
+    socket.on('screenshot_alert', (data) => {
+        const senderId = socketToId[socket.id];
+        if (!senderId) return;
+        const alertPayload = { from_name: registeredIDs[senderId] };
+        if (data.to && data.to !== 'Public' && activeConnections[data.to]) {
+            io.to(activeConnections[data.to]).emit('screenshot_alert', alertPayload);
+        }
+    });
+
     socket.on('typing', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('typing', data); });
     socket.on('stop_typing', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('stop_typing', data); });
     socket.on('reaction', data => io.emit('reaction', data));
 
+    // Calls Sync
     socket.on('offer', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('offer', data); });
     socket.on('answer', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('answer', data); });
     socket.on('candidate', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('candidate', data); });
     socket.on('call_rejected', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('call_rejected', data); });
+    
+    // NEW: End call for the peer
+    socket.on('end_call', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('call_ended'); });
 
     socket.on('disconnect', () => {
         const id = socketToId[socket.id];
@@ -95,4 +175,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Chatsapp Premium running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Chatsapp Premium VIP running on port ${PORT}`));
