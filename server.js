@@ -28,16 +28,15 @@ io.on('connection', (socket) => {
         
         callback({ success: true, message: "VIP ID Registered!" });
 
-        // Push offline messages sequentially for Apple-style stacked notifications
+        // 🚨 FIX: Wait 3.5 seconds for Splash Screen to disappear before sending offline notifications
         if (offlineMessageQueue[id] && offlineMessageQueue[id].length > 0) {
-            let delay = 1000;
+            let delay = 3500;
             offlineMessageQueue[id].forEach((item, index) => {
-                setTimeout(() => socket.emit(item.type, item.data), delay + (index * 1200));
+                setTimeout(() => socket.emit(item.type, item.data), delay + (index * 500));
             });
             offlineMessageQueue[id] = [];
         }
 
-        // Re-join user to their active groups
         for (let gId in groups) {
             if (groups[gId].members.includes(id)) {
                 socket.emit('group_added', { id: gId, name: groups[gId].name });
@@ -55,14 +54,13 @@ io.on('connection', (socket) => {
         }
     });
 
-    // VIP Group Creation
     socket.on('create_group', (data, callback) => {
         const senderId = socketToId[socket.id];
         if(!senderId) return;
         
-        const groupId = 'G' + Math.floor(100000 + Math.random() * 900000); // e.g. G123456
+        const groupId = 'G' + Math.floor(100000 + Math.random() * 900000); 
         let membersArray = data.members.split(',').map(m => m.trim()).filter(m => m.length === 6 && registeredIDs[m]);
-        if(!membersArray.includes(senderId)) membersArray.push(senderId); // Add admin
+        if(!membersArray.includes(senderId)) membersArray.push(senderId); 
         
         if (membersArray.length < 2) return callback({ success: false, message: "Need valid IDs to create group." });
 
@@ -84,7 +82,6 @@ io.on('connection', (socket) => {
         data.name = registeredIDs[senderId];
         data.time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
-        // Group Routing
         if (data.to && data.to.startsWith('G') && groups[data.to]) {
             groups[data.to].members.forEach(memberId => {
                 if (memberId !== senderId) {
@@ -96,9 +93,8 @@ io.on('connection', (socket) => {
                     }
                 }
             });
-            socket.emit(eventName, data); // send back to sender
+            socket.emit(eventName, data); 
         } 
-        // 1-to-1 Routing
         else if (data.to && data.to !== 'Public') {
             const targetSocketId = activeConnections[data.to];
             if (targetSocketId) {
@@ -109,7 +105,6 @@ io.on('connection', (socket) => {
             }
             socket.emit(eventName, data);
         } 
-        // Public Routing
         else {
             io.emit(eventName, data);
         }
@@ -156,13 +151,11 @@ io.on('connection', (socket) => {
     socket.on('stop_typing', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('stop_typing', data); });
     socket.on('reaction', data => io.emit('reaction', data));
 
-    // Calls Sync
     socket.on('offer', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('offer', data); });
     socket.on('answer', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('answer', data); });
     socket.on('candidate', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('candidate', data); });
     socket.on('call_rejected', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('call_rejected', data); });
     
-    // NEW: End call for the peer
     socket.on('end_call', data => { if(data.to && activeConnections[data.to]) io.to(activeConnections[data.to]).emit('call_ended'); });
 
     socket.on('disconnect', () => {
