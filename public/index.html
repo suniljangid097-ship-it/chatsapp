@@ -114,7 +114,7 @@
             border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 12px; z-index: 999999; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 10px;
             transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: #fff; cursor: pointer;
         }
-        #offline-popup.show { top: calc(env(safe-area-inset-top, 10px) + 20px); }
+        #offline-popup.show { top: calc(env(safe-area-inset-top, 6px) + 48px); }
         .popup-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #34C759, #28a745); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 18px; flex-shrink: 0; }
         .popup-content { flex: 1; overflow: hidden; }
         .popup-title { font-size: 13px; font-weight: 600; margin: 0 0 2px 0; display: flex; justify-content: space-between; }
@@ -134,7 +134,7 @@
         /* Settings Modals */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.5); backdrop-filter: blur(20px); z-index: 100000; display: flex; justify-content: center; align-items: center; }
         .modal-box { padding: 25px 20px; border-radius: 24px; text-align: center; width: 85%; max-width: 320px; max-height: 85vh; overflow-y: auto;}
-        .custom-input { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; background: rgba(0,0,0,0.25); color: white; font-size: 14px; outline: none; text-align: center; }
+        .custom-input { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0; border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; background: rgba(0,0,0,0.25); color: white; font-size: 16px; outline: none; text-align: center; }
         .submit-btn { background: #007AFF; color: white; border: none; padding: 12px 20px; margin-top: 8px; border-radius: 18px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4); }
 
         .setting-toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 14px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
@@ -394,7 +394,6 @@
         let userId = "";
         let currentTarget = "Public"; 
         let currentTargetName = "Public Chat";
-        let messageIdCounter = 0;
         let localFriends = []; 
         let activeCallType = null;
         let ghostModeActive = localStorage.getItem('chatsapp_ghost') === 'true';
@@ -412,16 +411,32 @@
             if(isChecked) { alert("👻 Ghost Mode Active: Long-press any message bubble to burn and smoke dissolve it!"); }
         }
 
-        // 👻 LONG-PRESS TO BURN
-        function burnSingleMessage(wrapper) {
+        // 🛡️ XSS SECURITY FIX
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag] || tag));
+        }
+
+        // 👻 LONG-PRESS DUAL-DELETE (SYNC FIX)
+        function burnSingleMessage(wrapper, isRemote = false) {
             if (!wrapper) return;
             const bubble = wrapper.querySelector('.message');
             if (bubble) {
                 bubble.classList.add('smoke-out');
-                if (navigator.vibrate) navigator.vibrate([40, 50]);
+                if (!isRemote && navigator.vibrate) navigator.vibrate([40, 50]);
+                if (!isRemote) {
+                    // Send delete command to server
+                    socket.emit('delete_message', { msgId: wrapper.id, to: currentTarget });
+                }
                 setTimeout(() => wrapper.remove(), 850);
             }
         }
+
+        socket.on('delete_message', (data) => {
+            const wrapper = document.getElementById(data.msgId);
+            if (wrapper) burnSingleMessage(wrapper, true);
+        });
 
         const fxBtn = document.getElementById('fx-menu-btn');
         const fxDrawer = document.getElementById('effects-drawer');
@@ -684,7 +699,9 @@
 
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${data.from_id === userId ? 'sent' : 'received'}`;
-            wrapper.setAttribute('data-chat-id', chatId); wrapper.id = 'msg-' + (++messageIdCounter);
+            wrapper.setAttribute('data-chat-id', chatId); 
+            // Unique ID for Dual-Delete Sync
+            wrapper.id = data.msgId;
             
             if (chatId !== currentTarget) { wrapper.style.display = 'none'; if(data.from_id !== userId) document.getElementById('island-main-pill').classList.add('ring'); }
 
@@ -712,7 +729,12 @@
             e.preventDefault();
             const textVal = mainInput.value.trim();
             if (textVal && username) {
-                socket.emit('chat message', { text: textVal, to: currentTarget });
+                // Secure text and assign Unique ID
+                const uniqueId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                const safeText = escapeHTML(textVal);
+                
+                socket.emit('chat message', { msgId: uniqueId, text: safeText, to: currentTarget });
+                
                 const lower = textVal.toLowerCase();
                 if (lower.includes('happy birthday') || lower.includes('hbd')) { socket.emit('screen_effect', { effect: 'confetti', to: currentTarget }); triggerScreenEffect('confetti'); } 
                 else if (lower.includes('congratulations') || lower.includes('congrats')) { socket.emit('screen_effect', { effect: 'fireworks', to: currentTarget }); triggerScreenEffect('fireworks'); }
@@ -734,7 +756,8 @@
                         if(w > 800) { h *= 800 / w; w = 800; } 
                         canvasImg.width = w; canvasImg.height = h; 
                         canvasImg.getContext('2d').drawImage(img, 0, 0, w, h);
-                        socket.emit('image message', { image: canvasImg.toDataURL('image/jpeg', 0.7), to: currentTarget });
+                        const uniqueId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                        socket.emit('image message', { msgId: uniqueId, image: canvasImg.toDataURL('image/jpeg', 0.7), to: currentTarget });
                     }; 
                     img.src = ev.target.result;
                 }; 
@@ -763,7 +786,13 @@
                     mediaRec = new MediaRecorder(stream); chunks = [];
                     mediaRec.ondataavailable = e => chunks.push(e.data);
                     mediaRec.onstop = () => { 
-                        if(chunks.length > 0){ const r = new FileReader(); r.onloadend = () => socket.emit('voice message', { audio: r.result, to: currentTarget }); r.readAsDataURL(new Blob(chunks, { type: 'audio/webm' })); } 
+                        if(chunks.length > 0){ 
+                            const r = new FileReader(); r.onloadend = () => {
+                                const uniqueId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                                socket.emit('voice message', { msgId: uniqueId, audio: r.result, to: currentTarget }); 
+                            };
+                            r.readAsDataURL(new Blob(chunks, { type: 'audio/webm' })); 
+                        } 
                     };
                     mediaRec.start(); this.classList.add('recording'); this.textContent = '■';
                 } catch(e){ alert("Mic error"); }
@@ -771,7 +800,7 @@
         });
         socket.on('voice message', (data) => appendMessage(data, createAppleVoicePlayer(data.audio), "Audio Note"));
 
-        // 📹 CALLING SYSTEM (Slide to Answer, Screen Share, Flip Camera, Sync Disconnect)
+        // 📹 CALLING SYSTEM
         let localStream, peerConn, pendingOffer = null;
         let isFrontCam = true;
 
@@ -901,11 +930,22 @@
         document.getElementById('end-video-btn').addEventListener('click', () => { socket.emit('end_call', {to: currentTarget}); forceEndCall(); });
         document.getElementById('end-voice-btn').addEventListener('click', () => { socket.emit('end_call', {to: currentTarget}); forceEndCall(); });
 
+        // 🛡️ CALL CLEANUP FIX (Camera/Mic strictly stopped)
         function forceEndCall() { 
-            if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-            if(peerConn) { peerConn.close(); peerConn = null; }
+            if(localStream) { 
+                localStream.getTracks().forEach(t => { t.stop(); }); 
+                localStream = null; 
+            }
+            if(peerConn) { 
+                peerConn.close(); 
+                peerConn = null; 
+            }
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('remoteVideo').srcObject = null;
             document.getElementById('video-container').style.display = 'none'; 
             document.getElementById('voice-call-overlay').style.display = 'none';
+            document.getElementById('incoming-call-modal').style.display = 'none';
+            document.getElementById('ringtone').pause();
         }
     </script>
 </body>
