@@ -28,7 +28,7 @@ io.on('connection', (socket) => {
         
         callback({ success: true, message: "VIP ID Registered!" });
 
-        // 🚨 FIX: Wait 3.5 seconds for Splash Screen to disappear before sending offline notifications
+        // Wait 3.5 seconds for Splash Screen to disappear before sending offline notifications
         if (offlineMessageQueue[id] && offlineMessageQueue[id].length > 0) {
             let delay = 3500;
             offlineMessageQueue[id].forEach((item, index) => {
@@ -114,6 +114,9 @@ io.on('connection', (socket) => {
     socket.on('voice message', data => routeData('voice message', data));
     socket.on('image message', data => routeData('image message', data));
     
+    // NEW FIX: Route delete message for Ghost Mode Sync
+    socket.on('delete_message', data => routeData('delete_message', data));
+
     socket.on('screen_effect', (data) => {
         const senderId = socketToId[socket.id];
         if (!senderId) return;
